@@ -26,9 +26,16 @@ func NewGenreSelector(width int, height int, serviceContainer *services.ServiceC
 	genreList := widget.NewList(func() int {
 		return len(genreSelector.genres)
 	}, func() fyne.CanvasObject {
-		return widget.NewLabel("")
+		button := widget.NewButton("", func() {})
+		button.Alignment = widget.ButtonAlignLeading
+		return button
 	}, func(i widget.ListItemID, o fyne.CanvasObject) {
-		o.(*widget.Label).SetText(genreSelector.genres[i].Name)
+		button := o.(*widget.Button)
+		genre := genreSelector.genres[i]
+		button.SetText(genre.Name)
+		button.OnTapped = func() {
+			fmt.Printf("chose genre: %s\n", genre.Name)
+		}
 	})
 	genreList.Resize(fyne.NewSize(float32(width), float32(height)))
 
