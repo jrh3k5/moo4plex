@@ -9,6 +9,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/service/media"
 	mediaui "github.com/jrh3k5/moo4plex/ui/media"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 type FileSelector struct {
@@ -25,13 +27,20 @@ func NewFileSelector(ctx context.Context, parentWindow *fyne.Window, librarySele
 			return
 		}
 
-		uriString := readCloser.URI().String()
+		uriString := readCloser.URI().Path()
 		filePathTextbox.SetText(uriString)
 
+		db, err := gorm.Open(sqlite.Open(uriString), &gorm.Config{})
+		if err != nil {
+			// TODO: report failure in opening database file
+			return
+		}
+
 		// TODO: read file, initialize database
-		libraryService := media.NewInMemoryLibraryService()
+		libraryService := media.NewGORMLibraryService(db)
 		if err := librarySelector.SetLibraries(ctx, libraryService); err != nil {
 			// TODO: report that the libraries failed to load
+			return
 		}
 	}
 

@@ -7,19 +7,15 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	"github.com/jrh3k5/moo4plex/service/media"
 	"github.com/jrh3k5/moo4plex/ui/db"
 	mediaui "github.com/jrh3k5/moo4plex/ui/media"
 )
 
 type App struct {
-	libraryService media.LibraryService
 }
 
-func NewApp(libraryService media.LibraryService) *App {
-	return &App{
-		libraryService: libraryService,
-	}
+func NewApp() *App {
+	return &App{}
 }
 
 func (a *App) Run(ctx context.Context) error {
