@@ -11,3 +11,18 @@ type LibraryService interface {
 	// GetMediaLibraries gets all known media libraries
 	GetMediaLibraries(ctx context.Context) ([]*model.MediaLibrary, error)
 }
+
+type InMemoryLibraryService struct {
+}
+
+func NewInMemoryLibraryService() *InMemoryLibraryService {
+	return &InMemoryLibraryService{}
+}
+
+func (i *InMemoryLibraryService) GetMediaLibraries(ctx context.Context) ([]*model.MediaLibrary, error) {
+	return []*model.MediaLibrary{
+		model.NewMediaLibrary("Movies"),
+		model.NewMediaLibrary("Music"),
+		model.NewMediaLibrary("Photos"),
+	}, nil
+}
