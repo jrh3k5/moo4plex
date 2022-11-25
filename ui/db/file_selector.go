@@ -9,15 +9,19 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/service/media"
 	mediaui "github.com/jrh3k5/moo4plex/ui/media"
+	"github.com/jrh3k5/moo4plex/ui/services"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
+// FileSelector is used to select the Plex database file to be read
 type FileSelector struct {
+	serviceContainer  *services.ServiceContainer
 	selectorContainer *fyne.Container
 }
 
-func NewFileSelector(ctx context.Context, parentWindow *fyne.Window, librarySelector mediaui.LibrarySelector) *FileSelector {
+// NewFileSelector creates a new instance of FileSelector
+func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, librarySelector *mediaui.LibrarySelector) *FileSelector {
 	filePathTextbox := widget.NewEntry()
 	filePathTextbox.Disable()
 
@@ -36,9 +40,10 @@ func NewFileSelector(ctx context.Context, parentWindow *fyne.Window, librarySele
 			return
 		}
 
-		// TODO: read file, initialize database
-		libraryService := media.NewGORMLibraryService(db)
-		if err := librarySelector.SetLibraries(ctx, libraryService); err != nil {
+		serviceContainer.SetLibraryService(media.NewGORMLibraryService(db))
+		serviceContainer.SetGenreService(media.NewGORMGenreService(db))
+
+		if err := librarySelector.SetLibraries(ctx); err != nil {
 			// TODO: report that the libraries failed to load
 			return
 		}
@@ -50,6 +55,7 @@ func NewFileSelector(ctx context.Context, parentWindow *fyne.Window, librarySele
 
 	selectorContainer := container.NewGridWithColumns(2, filePathTextbox, openButton)
 	return &FileSelector{
+		serviceContainer:  serviceContainer,
 		selectorContainer: selectorContainer,
 	}
 }
