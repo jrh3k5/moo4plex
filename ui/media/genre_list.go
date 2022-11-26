@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
 	"github.com/jrh3k5/moo4plex/ui/services"
@@ -51,10 +50,7 @@ func NewGenreList(serviceContainer *services.ServiceContainer, width int, height
 		component.genresList.Refresh()
 	}
 
-	listContainer := fyne.NewContainer(genreList)
-	listContainer.Resize(fyne.NewSize(float32(width), float32(height)))
-
-	component.selectorContainer = container.NewVBox(genreFilter, listContainer)
+	component.selectorContainer = fyne.NewContainer(genreFilter, genreList)
 	component.genreFilter = genreFilter
 	component.genresList = genreList
 
