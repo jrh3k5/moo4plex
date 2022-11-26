@@ -27,7 +27,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	serviceContainer := services.NewServiceContainer()
 
-	genreSelector := mediaui.NewGenreSelector(600, 300, serviceContainer, func(g *model.Genre) {
+	genreSelector := mediaui.NewGenreSelector(serviceContainer, 600, 300, func(g *model.Genre) {
 		fmt.Printf("selected genre %v\n", g.Name)
 	})
 
