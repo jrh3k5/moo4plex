@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
 	"github.com/jrh3k5/moo4plex/ui/services"
@@ -27,18 +28,30 @@ func NewGenreList(serviceContainer *services.ServiceContainer, width int, height
 	}
 
 	genreList := widget.NewList(func() int {
-		return len(component.currentGenres)
+		numGenres := len(component.currentGenres)
+		if numGenres < 10 {
+			return 10
+		}
+		return numGenres
 	}, func() fyne.CanvasObject {
 		button := widget.NewButton("", func() {})
 		button.Alignment = widget.ButtonAlignLeading
+		button.Disable()
 		return button
 	}, func(i widget.ListItemID, o fyne.CanvasObject) {
 		button := o.(*widget.Button)
+		// The list is empty and this just a templated button to help initially fill out the list
+		if i >= len(component.currentGenres) {
+			button.SetText("")
+			button.Disable()
+			return
+		}
 		genre := component.currentGenres[i]
 		button.SetText(genre.Name)
 		button.OnTapped = func() {
 			onSelected(genre)
 		}
+		button.Enable()
 	})
 	genreList.Resize(fyne.NewSize(float32(width), float32(height)))
 
@@ -50,7 +63,7 @@ func NewGenreList(serviceContainer *services.ServiceContainer, width int, height
 		component.genresList.Refresh()
 	}
 
-	component.selectorContainer = fyne.NewContainer(genreFilter, genreList)
+	component.selectorContainer = fyne.NewContainerWithLayout(layout.NewVBoxLayout(), genreFilter, fyne.NewContainerWithoutLayout(genreList))
 	component.genreFilter = genreFilter
 	component.genresList = genreList
 
