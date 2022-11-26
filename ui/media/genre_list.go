@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
 	"github.com/jrh3k5/moo4plex/ui/services"
@@ -63,7 +63,7 @@ func NewGenreList(serviceContainer *services.ServiceContainer, width int, height
 		component.genresList.Refresh()
 	}
 
-	component.selectorContainer = fyne.NewContainerWithLayout(layout.NewVBoxLayout(), genreFilter, fyne.NewContainerWithoutLayout(genreList))
+	component.selectorContainer = container.NewBorder(genreFilter, nil, nil, nil, container.NewMax(genreList))
 	component.genreFilter = genreFilter
 	component.genresList = genreList
 

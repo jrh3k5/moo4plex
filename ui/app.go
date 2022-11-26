@@ -27,7 +27,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	serviceContainer := services.NewServiceContainer()
 
-	// genreMerger := mediaui.NewGenreMerger(serviceContainer, 600, 300)
+	genreMerger := mediaui.NewGenreMerger(serviceContainer, 600, 300)
 
 	genreSelector := mediaui.NewGenreSelector(serviceContainer, 600, 300, func(g *model.Genre) {
 		fmt.Printf("selected genre %v\n", g.Name)
@@ -46,11 +46,12 @@ func (a *App) Run(ctx context.Context) error {
 
 	dbFileSelector := db.NewFileSelector(ctx, serviceContainer, &window, librarySelector)
 
-	window.SetContent(container.NewVBox(
-		dbFileSelector.GetObject(),
-		librarySelector.GetObject(),
+	dbMediaContainer := container.NewVBox(dbFileSelector.GetObject(), librarySelector.GetObject())
+
+	window.SetContent(container.NewGridWithRows(3,
+		dbMediaContainer,
 		genreSelector.GetObject(),
-		// genreMerger.GetObject(),
+		genreMerger.GetObject(),
 	))
 
 	window.ShowAndRun()
