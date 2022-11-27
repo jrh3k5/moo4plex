@@ -62,12 +62,16 @@ func (a *App) Run(ctx context.Context) error {
 		genreMerger.GetObject(),
 	)
 
+	tabbedContainer := container.NewAppTabs(
+		container.NewTabItem("Genres", genreDataContainer),
+	)
+
 	window.SetContent(container.NewBorder(
 		dbMediaContainer,
 		nil,
 		nil,
 		nil,
-		genreDataContainer,
+		tabbedContainer,
 	))
 
 	window.ShowAndRun()
