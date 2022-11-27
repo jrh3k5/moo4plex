@@ -41,7 +41,7 @@ func (g *GORMGenreService) GetGenres(ctx context.Context, mediaLibraryID int64) 
 	return genres, nil
 }
 
-func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.Genre, toMerge []*model.Genre) error {
+func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.Genre, toMerge []*model.Genre, totalCountCallback func(int), itemCompletionCallback func()) error {
 	metadataIDSelectQuery := `SELECT DISTINCT t1.metadata_item_id
 							  FROM taggings t1
 							  WHERE t1.tag_id IN (?)`
@@ -62,6 +62,7 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 						WHERE taggings.metadata_item_id = ?
 						ORDER BY "taggings.index" ASC`
 	tagIndexUpdateQuery := `UPDATE taggings SET index = ? WHERE id = ?`
+	totalCountCallback(len(metadataIDs))
 	for _, metadataID := range metadataIDs {
 		// Delete the association to the genres to be merged
 		if deleteErr := g.db.Raw(deleteTaggingsQuery, metadataID, toMergeIDs).Error; deleteErr != nil {
@@ -94,6 +95,7 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 				return fmt.Errorf("failed to add target tag to metadata ID %d: %w", metadataID, createErr)
 			}
 		}
+		itemCompletionCallback()
 	}
 
 	if deleteTagsErr := g.db.Raw(deleteTagsQuery, toMergeIDs).Error; deleteTagsErr != nil {

@@ -21,7 +21,7 @@ type GenreMerger struct {
 	toMerge          []*model.Genre
 }
 
-func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer) *GenreMerger {
+func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer, progressBar *widget.ProgressBar) *GenreMerger {
 	merger := &GenreMerger{
 		serviceContainer: serviceContainer,
 	}
@@ -29,9 +29,24 @@ func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceConta
 	mergeButton := widget.NewButton("Merge Genres", func() {
 		dialog.ShowConfirm("Confirm Merge", fmt.Sprintf("You are about to merge %d genres into the genre '%s'. Do you wish to continue?", len(merger.toMerge), merger.mergeTarget.Name), func(confirmed bool) {
 			if confirmed {
-				if mergeErr := serviceContainer.GetGenreService().MergeGenres(ctx, merger.mergeTarget, merger.toMerge); mergeErr != nil {
+				numCompletions := 0
+				totalCallback := func(numItems int) {
+					progressBar.Max = float64(numItems)
+					progressBar.SetValue(0)
+					progressBar.Show()
+					defer progressBar.Hide()
+				}
+
+				itemCompletionCallback := func() {
+					numCompletions++
+					progressBar.SetValue(float64(numCompletions))
+				}
+
+				if mergeErr := serviceContainer.GetGenreService().MergeGenres(ctx, merger.mergeTarget, merger.toMerge, totalCallback, itemCompletionCallback); mergeErr != nil {
 					// TODO: report error
 					fmt.Printf("failed to merge genres: %v\n", mergeErr)
+				} else {
+					dialog.ShowInformation("Merge Completed", fmt.Sprintf("%d genre(s) have been merged into '%s'", len(merger.toMerge), merger.mergeTarget.Name), *parentWindow)
 				}
 			}
 		}, *parentWindow)

@@ -27,7 +27,10 @@ func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, service
 		containerLabel:   widget.NewLabel("Genre:"),
 	}
 
-	genreMerger := NewGenreMerger(ctx, parentWindow, serviceContainer)
+	progressBar := widget.NewProgressBar()
+	progressBar.Hide()
+
+	genreMerger := NewGenreMerger(ctx, parentWindow, serviceContainer, progressBar)
 	genreMergeEditor.genreMerger = genreMerger
 
 	genreList := NewGenreList(serviceContainer, func(genre *model.Genre) {
@@ -37,7 +40,7 @@ func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, service
 
 	selectorContainer := container.NewGridWithColumns(2, genreList.GetObject(), genreMerger.GetObject())
 
-	genreMergeEditor.mergeContainer = container.NewBorder(genreMergeEditor.containerLabel, nil, nil, nil, selectorContainer)
+	genreMergeEditor.mergeContainer = container.NewBorder(genreMergeEditor.containerLabel, nil, nil, progressBar, selectorContainer)
 
 	return genreMergeEditor
 }
