@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -36,7 +37,7 @@ func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceCont
 
 		db, err := gorm.Open(sqlite.Open(uriString), &gorm.Config{})
 		if err != nil {
-			// TODO: report failure in opening database file
+			dialog.ShowError(fmt.Errorf("failed to open database at '%s': %w", uriString, err), *parentWindow)
 			return
 		}
 
@@ -44,7 +45,7 @@ func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceCont
 		serviceContainer.SetGenreService(media.NewGORMGenreService(db))
 
 		if err := librarySelector.SetLibraries(ctx); err != nil {
-			// TODO: report that the libraries failed to load
+			dialog.ShowError(fmt.Errorf("failed to set libraries: %w", err), *parentWindow)
 			return
 		}
 	}

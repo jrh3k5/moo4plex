@@ -63,7 +63,6 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 	tagIndexUpdateQuery := `UPDATE taggings SET "index" = ? WHERE id = ?`
 	totalCountCallback(len(metadataIDs))
 	for _, metadataID := range metadataIDs {
-		fmt.Printf("processing metadata ID %d\n", metadataID)
 		// Delete the association to the genres to be merged
 		if deleteErr := g.db.Exec(deleteTaggingsQuery, metadataID, toMergeIDs).Error; deleteErr != nil {
 			return fmt.Errorf("failed to delete %d genre associations for metadata ID %d: %w", len(toMergeIDs), metadataID, deleteErr)

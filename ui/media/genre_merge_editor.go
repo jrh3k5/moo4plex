@@ -21,7 +21,7 @@ type GenreMergeEditor struct {
 }
 
 // NewGenreMergeEditor creates a new instance of GenreMergeEditor
-func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer) *GenreMergeEditor {
+func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer, onSaveCallback func()) *GenreMergeEditor {
 	genreMergeEditor := &GenreMergeEditor{
 		serviceContainer: serviceContainer,
 		containerLabel:   widget.NewLabel("Genre:"),
@@ -30,7 +30,9 @@ func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, service
 	progressBar := widget.NewProgressBar()
 	progressBar.Hide()
 
-	genreMerger := NewGenreMerger(ctx, parentWindow, serviceContainer, progressBar)
+	genreMerger := NewGenreMerger(ctx, parentWindow, serviceContainer, progressBar, func() {
+		genreMergeEditor.ClearGenre()
+	})
 	genreMergeEditor.genreMerger = genreMerger
 
 	genreList := NewGenreList(serviceContainer, func(genre *model.Genre) {
@@ -45,10 +47,19 @@ func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, service
 	return genreMergeEditor
 }
 
+// ClearGenre clears the genre information in this control
+func (g *GenreMergeEditor) ClearGenre() {
+	g.genreList.ClearGenres()
+	g.genreMerger.ClearMergeTarget()
+	g.genreMerger.ClearMerges()
+	g.containerLabel.SetText("Genre:")
+}
+
 func (g *GenreMergeEditor) GetObject() fyne.CanvasObject {
 	return g.mergeContainer
 }
 
+// SetGenre sets the genre for which changes are to be made
 func (g *GenreMergeEditor) SetGenre(ctx context.Context, genre *model.Genre) {
 	g.genreList.SetGenres(ctx, genre.MediaLibraryID)
 	g.genreMerger.SetMergeTarget(genre)

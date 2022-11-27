@@ -21,7 +21,7 @@ type GenreMerger struct {
 	toMerge          []*model.Genre
 }
 
-func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer, progressBar *widget.ProgressBar) *GenreMerger {
+func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer, progressBar *widget.ProgressBar, onSaveCallback func()) *GenreMerger {
 	merger := &GenreMerger{
 		serviceContainer: serviceContainer,
 	}
@@ -29,6 +29,10 @@ func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceConta
 	mergeButton := widget.NewButton("Merge Genres", func() {
 		dialog.ShowConfirm("Confirm Merge", fmt.Sprintf("You are about to merge %d genres into the genre '%s'. Do you wish to continue?", len(merger.toMerge), merger.mergeTarget.Name), func(confirmed bool) {
 			if confirmed {
+				// Localize the variables because they could be cleared out by calling onSaveCallback
+				mergeTarget := merger.mergeTarget
+				toMerge := merger.toMerge
+
 				numCompletions := 0
 				totalCallback := func(numItems int) {
 					progressBar.Max = float64(numItems)
@@ -42,11 +46,11 @@ func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceConta
 					progressBar.SetValue(float64(numCompletions))
 				}
 
-				if mergeErr := serviceContainer.GetGenreService().MergeGenres(ctx, merger.mergeTarget, merger.toMerge, totalCallback, itemCompletionCallback); mergeErr != nil {
-					// TODO: report error
-					fmt.Printf("failed to merge genres: %v\n", mergeErr)
+				if mergeErr := serviceContainer.GetGenreService().MergeGenres(ctx, mergeTarget, toMerge, totalCallback, itemCompletionCallback); mergeErr != nil {
+					dialog.ShowError(fmt.Errorf("failed to merge genres: %w", mergeErr), *parentWindow)
 				} else {
-					dialog.ShowInformation("Merge Completed", fmt.Sprintf("%d genre(s) have been merged into '%s'", len(merger.toMerge), merger.mergeTarget.Name), *parentWindow)
+					onSaveCallback()
+					dialog.ShowInformation("Merge Completed", fmt.Sprintf("%d genre(s) have been merged into '%s'", len(toMerge), mergeTarget.Name), *parentWindow)
 				}
 			}
 		}, *parentWindow)
@@ -114,6 +118,11 @@ func (g *GenreMerger) ClearMerges() {
 	g.toMerge = nil
 	g.toMergeList.Refresh()
 	g.mergeButton.Disable()
+}
+
+// ClearMergeTarget removes the set target genre for merging
+func (g *GenreMerger) ClearMergeTarget() {
+	g.mergeTarget = nil
 }
 
 // SetMergeTarget sets the target genre into which the selected genres will be merged
