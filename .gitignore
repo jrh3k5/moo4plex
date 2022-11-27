@@ -19,3 +19,6 @@ com.plexapp.plugins.library.db*
 
 # Ignore IDE artifacts
 .DS_Store
+
+# Ignore release artifacts
+dist/
