@@ -2,7 +2,6 @@ package media
 
 import (
 	"context"
-	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -14,21 +13,25 @@ type GenreMergeEditor struct {
 	serviceContainer *services.ServiceContainer
 	mergeContainer   *fyne.Container
 	genreList        *GenreList
+	genreMerger      *GenreMerger
 }
 
 func NewGenreMergeEditor(serviceContainer *services.ServiceContainer, width int, height int) *GenreMergeEditor {
-	genreMerger := &GenreMergeEditor{
+	genreMergeEditor := &GenreMergeEditor{
 		serviceContainer: serviceContainer,
 	}
 
-	genreList := NewGenreList(serviceContainer, width/2, height, func(g *model.Genre) {
-		fmt.Printf("merge %s\n", g.Name)
+	genreMerger := NewGenreMerger(serviceContainer)
+	genreMergeEditor.genreMerger = genreMerger
+
+	genreList := NewGenreList(serviceContainer, width/2, height, func(genre *model.Genre) {
+		genreMerger.AddMerge(genre)
 	})
-	genreMerger.genreList = genreList
+	genreMergeEditor.genreList = genreList
 
-	genreMerger.mergeContainer = container.NewGridWithColumns(2, genreList.GetObject())
+	genreMergeEditor.mergeContainer = container.NewGridWithColumns(2, genreList.GetObject(), genreMerger.GetObject())
 
-	return genreMerger
+	return genreMergeEditor
 }
 
 func (g *GenreMergeEditor) GetObject() fyne.CanvasObject {
@@ -37,4 +40,5 @@ func (g *GenreMergeEditor) GetObject() fyne.CanvasObject {
 
 func (g *GenreMergeEditor) SetGenre(ctx context.Context, genre *model.Genre) {
 	g.genreList.SetGenres(ctx, genre.MediaLibraryID)
+	g.genreMerger.SetMergeTarget(genre)
 }
