@@ -21,13 +21,13 @@ type GenreMergeEditor struct {
 }
 
 // NewGenreMergeEditor creates a new instance of GenreMergeEditor
-func NewGenreMergeEditor(parentWindow *fyne.Window, serviceContainer *services.ServiceContainer) *GenreMergeEditor {
+func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer) *GenreMergeEditor {
 	genreMergeEditor := &GenreMergeEditor{
 		serviceContainer: serviceContainer,
 		containerLabel:   widget.NewLabel("Genre:"),
 	}
 
-	genreMerger := NewGenreMerger(parentWindow, serviceContainer)
+	genreMerger := NewGenreMerger(ctx, parentWindow, serviceContainer)
 	genreMergeEditor.genreMerger = genreMerger
 
 	genreList := NewGenreList(serviceContainer, func(genre *model.Genre) {

@@ -10,4 +10,7 @@ import (
 type GenreService interface {
 	// GetGenres gets genres listed within the given media library
 	GetGenres(ctx context.Context, mediaLibraryID int64) ([]*model.Genre, error)
+
+	// MergeGenres merges the given genres into the target genre
+	MergeGenres(ctx context.Context, mergeTarget *model.Genre, toMerge []*model.Genre) error
 }

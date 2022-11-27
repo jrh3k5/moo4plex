@@ -1,6 +1,7 @@
 package media
 
 import (
+	"context"
 	"fmt"
 
 	"fyne.io/fyne/v2"
@@ -20,7 +21,7 @@ type GenreMerger struct {
 	toMerge          []*model.Genre
 }
 
-func NewGenreMerger(parentWindow *fyne.Window, serviceContainer *services.ServiceContainer) *GenreMerger {
+func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer) *GenreMerger {
 	merger := &GenreMerger{
 		serviceContainer: serviceContainer,
 	}
@@ -28,7 +29,10 @@ func NewGenreMerger(parentWindow *fyne.Window, serviceContainer *services.Servic
 	mergeButton := widget.NewButton("Merge Genres", func() {
 		dialog.ShowConfirm("Confirm Merge", fmt.Sprintf("You are about to merge %d genres into the genre '%s'. Do you wish to continue?", len(merger.toMerge), merger.mergeTarget.Name), func(confirmed bool) {
 			if confirmed {
-				fmt.Println("Merging!")
+				if mergeErr := serviceContainer.GetGenreService().MergeGenres(ctx, merger.mergeTarget, merger.toMerge); mergeErr != nil {
+					// TODO: report error
+					fmt.Printf("failed to merge genres: %v\n", mergeErr)
+				}
 			}
 		}, *parentWindow)
 	})
