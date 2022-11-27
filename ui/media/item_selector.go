@@ -23,7 +23,7 @@ type ItemSelector struct {
 	currentMediaLibraryID int64
 }
 
-func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemSelector {
+func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, onSelect func(*model.MediaItem)) *ItemSelector {
 	itemSelector := &ItemSelector{
 		serviceContainer: serviceContainer,
 	}
@@ -39,9 +39,7 @@ func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceCont
 
 	mediaItemList := component.NewClickableList(func(m *model.MediaItem) string {
 		return m.Name
-	}, func(m *model.MediaItem) {
-		fmt.Printf("selected '%s'\n", m.Name)
-	})
+	}, onSelect)
 
 	itemSelector.container = container.NewBorder(mediaTypeSelector, nil, nil, nil, mediaItemList.GetObject())
 	itemSelector.mediaTypeSelector = mediaTypeSelector
