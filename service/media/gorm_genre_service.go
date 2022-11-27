@@ -5,10 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jrh3k5/moo4plex/model"
-)
-
-const (
-	genreTagType = 1
+	gormmodel "github.com/jrh3k5/moo4plex/model/gorm"
 )
 
 type GORMGenreService struct {
@@ -22,7 +19,7 @@ func NewGORMGenreService(gormTagService *GORMTagService) *GORMGenreService {
 }
 
 func (g *GORMGenreService) GetGenres(ctx context.Context, mediaLibraryID int64) ([]*model.Genre, error) {
-	tags, err := g.gormTagService.GetTagsForLibrarySection(ctx, genreTagType, mediaLibraryID)
+	tags, err := g.gormTagService.GetTagsForLibrarySection(ctx, gormmodel.Genre, mediaLibraryID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve genres for media library %d: %w", mediaLibraryID, err)
 	}

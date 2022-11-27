@@ -21,14 +21,26 @@ func NewGORMTagService(db *gorm.DB) *GORMTagService {
 }
 
 // GetTagsForLibrarySection gets the tags for the given library section ID and tag type
-func (g *GORMTagService) GetTagsForLibrarySection(ctx context.Context, tagType int, librarySectionID int64) ([]*gormmodel.Tag, error) {
+func (g *GORMTagService) GetTagsForLibrarySection(ctx context.Context, tagType gormmodel.TagType, librarySectionID int64) ([]*gormmodel.Tag, error) {
 	var tags []*gormmodel.Tag
 	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id").
 		Joins("inner join taggings on taggings.tag_id = tags.id").
 		Joins("inner join metadata_items on metadata_items.id = taggings.metadata_item_id and metadata_items.library_section_id = ?", librarySectionID).
-		Find(&tags, "tag_type = ?", tagType)
+		Find(&tags, "tag_type = ?", int(tagType))
 	if dbErr := queryDB.Error; dbErr != nil {
 		return nil, fmt.Errorf("failed to resolve genres for library section %d, tag type %d: %w", librarySectionID, tagType, dbErr)
+	}
+	return tags, nil
+}
+
+// GetTagsForMetadataItem gets tags of the given type for the given metadata item
+func (g *GORMTagService) GetTagsForMetadataItem(ctx context.Context, tagType gormmodel.TagType, metadataItemID int64) ([]*gormmodel.Tag, error) {
+	var tags []*gormmodel.Tag
+	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id").
+		Joins("inner join taggings on taggings.tag_id = tags.id and taggings.metadata_item_id = ?", metadataItemID).
+		Find(&tags, "tag_type = ?", int(tagType))
+	if dbErr := queryDB.Error; dbErr != nil {
+		return nil, fmt.Errorf("failed to resolve genres for metadata item %d, tag type %d: %w", metadataItemID, tagType, dbErr)
 	}
 	return tags, nil
 }

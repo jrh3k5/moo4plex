@@ -4,7 +4,9 @@ import "github.com/jrh3k5/moo4plex/service/media"
 
 // ServiceContainer is a convenient means of sharing services between UI components that cannot be initialized at startup
 type ServiceContainer struct {
+	actorService      media.ActorService
 	genreService      media.GenreService
+	hasActorService   bool
 	hasGenreService   bool
 	hasItemService    bool
 	hasLibraryService bool
@@ -17,6 +19,15 @@ func NewServiceContainer() *ServiceContainer {
 	return &ServiceContainer{}
 }
 
+// GetGenreService gets the actor service, if set.
+// This will panic if there is no actor service set yet.
+func (sc *ServiceContainer) GetActorService() media.ActorService {
+	if !sc.hasActorService {
+		panic("No actor service set")
+	}
+	return sc.actorService
+}
+
 // GetGenreService gets the genre service, if set.
 // This will panic if there is no genre service set yet.
 func (sc *ServiceContainer) GetGenreService() media.GenreService {
@@ -27,7 +38,7 @@ func (sc *ServiceContainer) GetGenreService() media.GenreService {
 }
 
 // GetItemService gets the item service, if set.
-// This will panic if there is no library service set yet.
+// This will panic if there is no item service set yet.
 func (sc *ServiceContainer) GetItemService() media.ItemService {
 	if !sc.hasItemService {
 		panic("No item service set")
@@ -42,6 +53,12 @@ func (sc *ServiceContainer) GetLibraryService() media.LibraryService {
 		panic("No library service set")
 	}
 	return sc.libraryService
+}
+
+// SetActorService sets the media.ActorService to be used by the UI components
+func (sc *ServiceContainer) SetActorService(actorService media.ActorService) {
+	sc.actorService = actorService
+	sc.hasActorService = true
 }
 
 // SetGenreService sets the media.GenreService to be used by UI components
