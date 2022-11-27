@@ -94,4 +94,5 @@ func (c *ClickableList[V]) applyFilter(textFilter string) {
 		}
 	}
 	c.currentData = currentData
+	c.dataList.Refresh()
 }

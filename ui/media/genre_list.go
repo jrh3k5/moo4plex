@@ -21,7 +21,7 @@ func NewGenreList(serviceContainer *services.ServiceContainer, onSelected func(*
 		serviceContainer: serviceContainer,
 	}
 
-	clickableList := component.NewClickableList[*model.Genre](func(g *model.Genre) string {
+	clickableList := component.NewClickableList(func(g *model.Genre) string {
 		return g.Name
 	}, func(g *model.Genre) {
 		onSelected(g)

@@ -9,5 +9,5 @@ import (
 // ItemService describes a service used to interact with media items
 type ItemService interface {
 	// GetItems gets all media items for the given media library ID
-	GetItems(ctx context.Context, mediaLibraryID int64) ([]*model.MediaItem, error)
+	GetItems(ctx context.Context, mediaLibraryID int64, mediaType model.MediaType) ([]*model.MediaItem, error)
 }

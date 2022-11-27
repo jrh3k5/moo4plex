@@ -43,7 +43,7 @@ func (a *App) Run(ctx context.Context) error {
 		genreMerger.SetGenre(ctx, genre)
 	})
 
-	itemSelector := mediaui.NewItemSelector(serviceContainer)
+	itemSelector := mediaui.NewItemSelector(ctx, serviceContainer, &window)
 
 	librarySelector := mediaui.NewLibrarySelector(serviceContainer, func(m *model.MediaLibrary) {
 		if m == nil {
