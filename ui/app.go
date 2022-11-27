@@ -47,11 +47,17 @@ func (a *App) Run(ctx context.Context) error {
 	dbFileSelector := db.NewFileSelector(ctx, serviceContainer, &window, librarySelector)
 
 	dbMediaContainer := container.NewVBox(dbFileSelector.GetObject(), librarySelector.GetObject())
-
-	window.SetContent(container.NewGridWithRows(3,
-		dbMediaContainer,
+	genreDataContainer := container.NewGridWithRows(2,
 		genreSelector.GetObject(),
 		genreMerger.GetObject(),
+	)
+
+	window.SetContent(container.NewBorder(
+		dbMediaContainer,
+		nil,
+		nil,
+		nil,
+		genreDataContainer,
 	))
 
 	window.ShowAndRun()
