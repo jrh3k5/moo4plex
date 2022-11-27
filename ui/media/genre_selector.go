@@ -14,10 +14,10 @@ type GenreSelector struct {
 }
 
 // NewGenreSelector creates a new instance of GenreSelector
-func NewGenreSelector(serviceContainer *services.ServiceContainer, width int, height int, onSelect func(*model.Genre)) *GenreSelector {
+func NewGenreSelector(serviceContainer *services.ServiceContainer, onSelect func(*model.Genre)) *GenreSelector {
 	genreSelector := &GenreSelector{}
 
-	genreSelector.genreList = NewGenreList(serviceContainer, width, height, onSelect)
+	genreSelector.genreList = NewGenreList(serviceContainer, onSelect)
 
 	return genreSelector
 }

@@ -29,9 +29,9 @@ func (a *App) Run(ctx context.Context) error {
 
 	serviceContainer := services.NewServiceContainer()
 
-	genreMerger := mediaui.NewGenreMergeEditor(&window, serviceContainer, width, 300)
+	genreMerger := mediaui.NewGenreMergeEditor(&window, serviceContainer)
 
-	genreSelector := mediaui.NewGenreSelector(serviceContainer, width, 300, func(genre *model.Genre) {
+	genreSelector := mediaui.NewGenreSelector(serviceContainer, func(genre *model.Genre) {
 		genreMerger.SetGenre(ctx, genre)
 	})
 

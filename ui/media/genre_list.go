@@ -22,7 +22,7 @@ type GenreList struct {
 	currentGenres     []*model.Genre
 }
 
-func NewGenreList(serviceContainer *services.ServiceContainer, width int, height int, onSelected func(*model.Genre)) *GenreList {
+func NewGenreList(serviceContainer *services.ServiceContainer, onSelected func(*model.Genre)) *GenreList {
 	component := &GenreList{
 		serviceContainer: serviceContainer,
 	}
@@ -53,7 +53,7 @@ func NewGenreList(serviceContainer *services.ServiceContainer, width int, height
 		}
 		button.Enable()
 	})
-	genreList.Resize(fyne.NewSize(float32(width), float32(height)))
+	// genreList.Resize(fyne.NewSize(float32(width), float32(height)))
 
 	genreFilter := widget.NewEntry()
 	genreFilter.Disable()
