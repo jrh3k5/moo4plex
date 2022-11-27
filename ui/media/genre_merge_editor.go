@@ -32,6 +32,7 @@ func NewGenreMergeEditor(ctx context.Context, parentWindow *fyne.Window, service
 
 	genreMerger := NewGenreMerger(ctx, parentWindow, serviceContainer, progressBar, func() {
 		genreMergeEditor.ClearGenre()
+		onSaveCallback()
 	})
 	genreMergeEditor.genreMerger = genreMerger
 
