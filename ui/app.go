@@ -2,7 +2,6 @@ package ui
 
 import (
 	"context"
-	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -29,8 +28,8 @@ func (a *App) Run(ctx context.Context) error {
 
 	genreMerger := mediaui.NewGenreMerger(serviceContainer, 600, 300)
 
-	genreSelector := mediaui.NewGenreSelector(serviceContainer, 600, 300, func(g *model.Genre) {
-		fmt.Printf("selected genre %v\n", g.Name)
+	genreSelector := mediaui.NewGenreSelector(serviceContainer, 600, 300, func(genre *model.Genre) {
+		genreMerger.SetGenre(ctx, genre)
 	})
 
 	librarySelector := mediaui.NewLibrarySelector(serviceContainer, func(m *model.MediaLibrary) {

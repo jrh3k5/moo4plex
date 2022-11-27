@@ -1,7 +1,8 @@
 package gorm
 
 type Tag struct {
-	ID      int64  `gorm:"id"`       // the ID of the tag
-	Tag     string `gorm:"tag"`      // the name of the tag
-	TagType int64  `gorm:"tag_type"` // the type of the tag
+	ID               int64  `gorm:"id"`                 // the ID of the tag
+	Tag              string `gorm:"tag"`                // the name of the tag
+	TagType          int64  `gorm:"tag_type"`           // the type of the tag
+	LibrarySectionID int64  `gorm:"library_section_id"` // the ID of the library section to which the tag belongs
 }
