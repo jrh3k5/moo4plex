@@ -51,21 +51,21 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 	}
 
 	var metadataIDs []int64
-	if metadataSelectErr := g.db.Raw(metadataIDSelectQuery, toMergeIDs).Scan(&metadataIDs).Error; metadataSelectErr != nil {
+	if metadataSelectErr := g.db.Raw(metadataIDSelectQuery, toMergeIDs).Find(&metadataIDs).Error; metadataSelectErr != nil {
 		return fmt.Errorf("failed to select metadata IDs for %d genres: %w", len(toMerge), metadataSelectErr)
 	}
 
-	deleteTagsQuery := `DELETE FROM tags WHERE id IN (?)`
 	deleteTaggingsQuery := `DELETE FROM taggings WHERE metadata_item_id = ? AND tag_id IN (?)`
 	getGenreQueries := `SELECT taggings.id FROM taggings 
 						INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type = ?
 						WHERE taggings.metadata_item_id = ?
 						ORDER BY "taggings.index" ASC`
-	tagIndexUpdateQuery := `UPDATE taggings SET index = ? WHERE id = ?`
+	tagIndexUpdateQuery := `UPDATE taggings SET "index" = ? WHERE id = ?`
 	totalCountCallback(len(metadataIDs))
 	for _, metadataID := range metadataIDs {
+		fmt.Printf("processing metadata ID %d\n", metadataID)
 		// Delete the association to the genres to be merged
-		if deleteErr := g.db.Raw(deleteTaggingsQuery, metadataID, toMergeIDs).Error; deleteErr != nil {
+		if deleteErr := g.db.Exec(deleteTaggingsQuery, metadataID, toMergeIDs).Error; deleteErr != nil {
 			return fmt.Errorf("failed to delete %d genre associations for metadata ID %d: %w", len(toMergeIDs), metadataID, deleteErr)
 		}
 
@@ -77,7 +77,7 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 
 		hasMergeTarget := false
 		for tagIndex, tagID := range tagIDs {
-			if updateErr := g.db.Raw(tagIndexUpdateQuery, tagIndex, tagID).Error; updateErr != nil {
+			if updateErr := g.db.Exec(tagIndexUpdateQuery, tagIndex, tagID).Error; updateErr != nil {
 				return fmt.Errorf("failed to update tag ID %d to index %d for metadata ID %d: %w", tagID, tagIndex, metadataID, updateErr)
 			}
 			hasMergeTarget = hasMergeTarget || tagID == mergeTarget.ID
@@ -98,9 +98,7 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 		itemCompletionCallback()
 	}
 
-	if deleteTagsErr := g.db.Raw(deleteTagsQuery, toMergeIDs).Error; deleteTagsErr != nil {
-		return fmt.Errorf("failed to delete remaining %d genres: %w", len(toMergeIDs), deleteTagsErr)
-	}
+	// Don't actually delete the tag because it has a collating tokenizer not recognized by this driver
 
 	return nil
 }

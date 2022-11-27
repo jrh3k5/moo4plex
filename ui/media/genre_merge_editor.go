@@ -52,5 +52,6 @@ func (g *GenreMergeEditor) GetObject() fyne.CanvasObject {
 func (g *GenreMergeEditor) SetGenre(ctx context.Context, genre *model.Genre) {
 	g.genreList.SetGenres(ctx, genre.MediaLibraryID)
 	g.genreMerger.SetMergeTarget(genre)
+	g.genreMerger.ClearMerges()
 	g.containerLabel.SetText(fmt.Sprintf("Genre: %s", genre.Name))
 }

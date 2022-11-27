@@ -109,6 +109,13 @@ func (g *GenreMerger) AddMerge(genre *model.Genre) {
 	g.mergeButton.Enable()
 }
 
+// ClearMerges clears all configured merges in the control
+func (g *GenreMerger) ClearMerges() {
+	g.toMerge = nil
+	g.toMergeList.Refresh()
+	g.mergeButton.Disable()
+}
+
 // SetMergeTarget sets the target genre into which the selected genres will be merged
 func (g *GenreMerger) SetMergeTarget(genre *model.Genre) {
 	g.mergeTarget = genre
