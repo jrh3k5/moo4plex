@@ -41,8 +41,9 @@ func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceCont
 			return
 		}
 
+		gormTagService := media.NewGORMTagService(db)
 		serviceContainer.SetLibraryService(media.NewGORMLibraryService(db))
-		serviceContainer.SetGenreService(media.NewGORMGenreService(db))
+		serviceContainer.SetGenreService(media.NewGORMGenreService(gormTagService))
 
 		if err := librarySelector.SetLibraries(ctx); err != nil {
 			dialog.ShowError(fmt.Errorf("failed to set libraries: %w", err), *parentWindow)
