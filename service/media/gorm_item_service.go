@@ -22,7 +22,7 @@ func NewGORMItemService(db *gorm.DB) *GORMItemService {
 
 func (g *GORMItemService) GetItems(ctx context.Context, mediaLibraryID int64) ([]*model.MediaItem, error) {
 	var metadataItems []*gormmodel.MetadataItem
-	if dbErr := g.db.Select("SELECT id, title FROM metadata_items WHERE library_subsection_id = ?", mediaLibraryID).Scan(&metadataItems).Error; dbErr != nil {
+	if dbErr := g.db.Select("SELECT id, title FROM metadata_items WHERE library_section_id = ?", mediaLibraryID).Scan(&metadataItems).Error; dbErr != nil {
 		return nil, fmt.Errorf("unable to query for metadata items for library section ID %d: %w", mediaLibraryID, dbErr)
 	}
 

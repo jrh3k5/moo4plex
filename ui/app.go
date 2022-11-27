@@ -43,6 +43,8 @@ func (a *App) Run(ctx context.Context) error {
 		genreMerger.SetGenre(ctx, genre)
 	})
 
+	itemSelector := mediaui.NewItemSelector(serviceContainer)
+
 	librarySelector := mediaui.NewLibrarySelector(serviceContainer, func(m *model.MediaLibrary) {
 		if m == nil {
 			genreSelector.ClearGenres()
@@ -51,6 +53,10 @@ func (a *App) Run(ctx context.Context) error {
 
 		if setErr := genreSelector.SetGenres(ctx, m.ID); setErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to set genres in genre seletor after media library selection: %w", setErr), window)
+		}
+
+		if setErr := itemSelector.SetMediaLibrary(ctx, m.ID); setErr != nil {
+			dialog.ShowError(fmt.Errorf("failed to set media library for item selector: %w", setErr), window)
 		}
 	})
 
@@ -64,6 +70,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	tabbedContainer := container.NewAppTabs(
 		container.NewTabItem("Genres", genreDataContainer),
+		container.NewTabItem("Items", itemSelector.GetObject()),
 	)
 
 	window.SetContent(container.NewBorder(

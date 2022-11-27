@@ -20,21 +20,21 @@ func NewGORMTagService(db *gorm.DB) *GORMTagService {
 	}
 }
 
-// GetTagsForLibrarySubsection gets the tags for the given library section ID and tag type
-func (g *GORMTagService) GetTagsForLibrarySubsection(ctx context.Context, tagType int, librarySubsectionID int64) ([]*gormmodel.Tag, error) {
+// GetTagsForLibrarySection gets the tags for the given library section ID and tag type
+func (g *GORMTagService) GetTagsForLibrarySection(ctx context.Context, tagType int, librarySectionID int64) ([]*gormmodel.Tag, error) {
 	var tags []*gormmodel.Tag
 	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id").
 		Joins("inner join taggings on taggings.tag_id = tags.id").
-		Joins("inner join metadata_items on metadata_items.id = taggings.metadata_item_id and metadata_items.library_section_id = ?", librarySubsectionID).
+		Joins("inner join metadata_items on metadata_items.id = taggings.metadata_item_id and metadata_items.library_section_id = ?", librarySectionID).
 		Find(&tags, "tag_type = ?", tagType)
 	if dbErr := queryDB.Error; dbErr != nil {
-		return nil, fmt.Errorf("failed to resolve genres for library section %d, tag type %d: %w", librarySubsectionID, tagType, dbErr)
+		return nil, fmt.Errorf("failed to resolve genres for library section %d, tag type %d: %w", librarySectionID, tagType, dbErr)
 	}
 	return tags, nil
 }
 
-// ReplaceTags replaces all associations of the given toReplaceTagIDs in the given media library subsection with the given replacementTagID
-func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySubsectionID int64, toReplaceTagIDs []int64, replacementTagID int64) error {
+// ReplaceTags replaces all associations of the given toReplaceTagIDs in the given media library section with the given replacementTagID
+func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64, toReplaceTagIDs []int64, replacementTagID int64) error {
 	metadataIDSelectQuery := `SELECT DISTINCT t1.metadata_item_id
 							  FROM taggings t1
 							  WHERE t1.tag_id IN (?)`
