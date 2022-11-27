@@ -1,8 +1,11 @@
 package media
 
 import (
+	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
 	"github.com/jrh3k5/moo4plex/ui/services"
@@ -17,12 +20,18 @@ type GenreMerger struct {
 	toMerge          []*model.Genre
 }
 
-func NewGenreMerger(serviceContainer *services.ServiceContainer) *GenreMerger {
+func NewGenreMerger(parentWindow *fyne.Window, serviceContainer *services.ServiceContainer) *GenreMerger {
 	merger := &GenreMerger{
 		serviceContainer: serviceContainer,
 	}
 
-	mergeButton := widget.NewButton("Merge Genres", func() {})
+	mergeButton := widget.NewButton("Merge Genres", func() {
+		dialog.ShowConfirm("Confirm Merge", fmt.Sprintf("You are about to merge %d genres into the genre '%s'. Do you wish to continue?", len(merger.toMerge), merger.mergeTarget.Name), func(confirmed bool) {
+			if confirmed {
+				fmt.Println("Merging!")
+			}
+		}, *parentWindow)
+	})
 	mergeButton.Disable()
 	merger.mergeButton = mergeButton
 

@@ -11,6 +11,7 @@ import (
 	"github.com/jrh3k5/moo4plex/ui/services"
 )
 
+// GenreMergeEditor is a combinatory
 type GenreMergeEditor struct {
 	serviceContainer *services.ServiceContainer
 	mergeContainer   *fyne.Container
@@ -19,13 +20,14 @@ type GenreMergeEditor struct {
 	genreMerger      *GenreMerger
 }
 
-func NewGenreMergeEditor(serviceContainer *services.ServiceContainer, width int, height int) *GenreMergeEditor {
+// NewGenreMergeEditor creates a new instance of GenreMergeEditor
+func NewGenreMergeEditor(parentWindow *fyne.Window, serviceContainer *services.ServiceContainer, width int, height int) *GenreMergeEditor {
 	genreMergeEditor := &GenreMergeEditor{
 		serviceContainer: serviceContainer,
 		containerLabel:   widget.NewLabel("Genre:"),
 	}
 
-	genreMerger := NewGenreMerger(serviceContainer)
+	genreMerger := NewGenreMerger(parentWindow, serviceContainer)
 	genreMergeEditor.genreMerger = genreMerger
 
 	genreList := NewGenreList(serviceContainer, width/2, height, func(genre *model.Genre) {

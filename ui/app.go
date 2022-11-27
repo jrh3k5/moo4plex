@@ -20,13 +20,16 @@ func NewApp() *App {
 }
 
 func (a *App) Run(ctx context.Context) error {
+	height := 800
+	width := 700
+
 	fyneApp := app.New()
 	window := fyneApp.NewWindow("MOO4Plex")
-	window.Resize(fyne.NewSize(600, 800))
+	window.Resize(fyne.NewSize(float32(width), float32(height)))
 
 	serviceContainer := services.NewServiceContainer()
 
-	genreMerger := mediaui.NewGenreMergeEditor(serviceContainer, 600, 300)
+	genreMerger := mediaui.NewGenreMergeEditor(&window, serviceContainer, width, 300)
 
 	genreSelector := mediaui.NewGenreSelector(serviceContainer, 600, 300, func(genre *model.Genre) {
 		genreMerger.SetGenre(ctx, genre)
