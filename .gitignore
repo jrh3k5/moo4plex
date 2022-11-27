@@ -13,3 +13,12 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Ignore any Plex databases for testing/dev purposes
+com.plexapp.plugins.library.db*
+
+# Ignore IDE artifacts
+.DS_Store
+
+# Ignore release artifacts
+dist/
