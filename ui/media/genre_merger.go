@@ -11,6 +11,7 @@ import (
 type GenreMerger struct {
 	serviceContainer *services.ServiceContainer
 	mergerComponent  fyne.CanvasObject
+	mergeButton      *widget.Button
 	toMergeList      *widget.List
 	mergeTarget      *model.Genre
 	toMerge          []*model.Genre
@@ -20,6 +21,10 @@ func NewGenreMerger(serviceContainer *services.ServiceContainer) *GenreMerger {
 	merger := &GenreMerger{
 		serviceContainer: serviceContainer,
 	}
+
+	mergeButton := widget.NewButton("Merge Genres", func() {})
+	mergeButton.Disable()
+	merger.mergeButton = mergeButton
 
 	toMergeList := widget.NewList(func() int {
 		toMergeCount := len(merger.toMerge)
@@ -49,7 +54,7 @@ func NewGenreMerger(serviceContainer *services.ServiceContainer) *GenreMerger {
 	})
 	merger.toMergeList = toMergeList
 
-	merger.mergerComponent = container.NewMax(toMergeList)
+	merger.mergerComponent = container.NewBorder(mergeButton, nil, nil, nil, container.NewMax(toMergeList))
 
 	return merger
 }
@@ -72,6 +77,8 @@ func (g *GenreMerger) AddMerge(genre *model.Genre) {
 
 	g.toMerge = append(g.toMerge, genre)
 	g.toMergeList.Refresh()
+
+	g.mergeButton.Enable()
 }
 
 // SetMergeTarget sets the target genre into which the selected genres will be merged
@@ -86,4 +93,7 @@ func (g *GenreMerger) removeMerge(genre *model.Genre) {
 		}
 	}
 	g.toMergeList.Refresh()
+	if len(g.toMerge) == 0 {
+		g.mergeButton.Disable()
+	}
 }
