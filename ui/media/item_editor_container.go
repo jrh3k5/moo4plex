@@ -16,6 +16,7 @@ type ItemEditActionContainer struct {
 	editorContainer  fyne.CanvasObject
 	editorLabel      *widget.Label
 	serviceContainer *services.ServiceContainer
+	actorList        *ActorListMediaItem
 	actorAdder       *ActorAdder
 }
 
@@ -29,8 +30,10 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer) *It
 
 	actorRemover := NewActorRemover(serviceContainer)
 	actorAdder := NewActorAdder(serviceContainer)
+	actorList := NewActorListMediaItem(serviceContainer)
 
 	editorAppTabs := container.NewAppTabs(
+		container.NewTabItem("Actor List", actorList.GetObject()),
 		container.NewTabItem("Add Actor", actorAdder.GetObject()),
 		container.NewTabItem("Remove Actor", actorRemover.GetObject()),
 	)
@@ -38,6 +41,7 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer) *It
 
 	actionContainer.editorContainer = editorAppTabs
 	actionContainer.actorAdder = actorAdder
+	actionContainer.actorList = actorList
 
 	return actionContainer
 }
@@ -46,8 +50,10 @@ func (i *ItemEditActionContainer) GetObject() fyne.CanvasObject {
 	return i.editorContainer
 }
 
+// SetItem sets the media item to be used in the context of this component
 func (i *ItemEditActionContainer) SetItem(ctx context.Context, mediaItem *model.MediaItem) error {
 	i.editorLabel.SetText(fmt.Sprintf("Item: %s", mediaItem.Name))
 	i.actorAdder.SetMediaItem(ctx, mediaItem.ID)
+	i.actorList.SetMediaItem(ctx, mediaItem.ID)
 	return nil
 }

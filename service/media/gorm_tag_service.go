@@ -38,7 +38,8 @@ func (g *GORMTagService) GetTagsForMetadataItem(ctx context.Context, tagType gor
 	var tags []*gormmodel.Tag
 	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id").
 		Joins("inner join taggings on taggings.tag_id = tags.id and taggings.metadata_item_id = ?", metadataItemID).
-		Find(&tags, "tag_type = ?", int(tagType))
+		Joins("inner join metadata_items on metadata_items.id = taggings.metadata_item_id").
+		Find(&tags, "tags.tag_type = ?", int(tagType))
 	if dbErr := queryDB.Error; dbErr != nil {
 		return nil, fmt.Errorf("failed to resolve tags for metadata item %d, tag type %d: %w", metadataItemID, tagType, dbErr)
 	}

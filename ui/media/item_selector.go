@@ -23,6 +23,7 @@ type ItemSelector struct {
 	currentMediaLibraryID int64
 }
 
+// NewItemSelector creates a new instance of ItemSelector
 func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, onSelect func(*model.MediaItem)) *ItemSelector {
 	itemSelector := &ItemSelector{
 		serviceContainer: serviceContainer,
