@@ -28,7 +28,7 @@ func (g *GORMTagService) GetTagsForLibrarySection(ctx context.Context, tagType g
 		Joins("inner join metadata_items on metadata_items.id = taggings.metadata_item_id and metadata_items.library_section_id = ?", librarySectionID).
 		Find(&tags, "tag_type = ?", int(tagType))
 	if dbErr := queryDB.Error; dbErr != nil {
-		return nil, fmt.Errorf("failed to resolve genres for library section %d, tag type %d: %w", librarySectionID, tagType, dbErr)
+		return nil, fmt.Errorf("failed to resolve tags for library section %d, tag type %d: %w", librarySectionID, tagType, dbErr)
 	}
 	return tags, nil
 }
@@ -40,38 +40,39 @@ func (g *GORMTagService) GetTagsForMetadataItem(ctx context.Context, tagType gor
 		Joins("inner join taggings on taggings.tag_id = tags.id and taggings.metadata_item_id = ?", metadataItemID).
 		Find(&tags, "tag_type = ?", int(tagType))
 	if dbErr := queryDB.Error; dbErr != nil {
-		return nil, fmt.Errorf("failed to resolve genres for metadata item %d, tag type %d: %w", metadataItemID, tagType, dbErr)
+		return nil, fmt.Errorf("failed to resolve tags for metadata item %d, tag type %d: %w", metadataItemID, tagType, dbErr)
 	}
 	return tags, nil
 }
 
 // ReplaceTags replaces all associations of the given toReplaceTagIDs in the given media library section with the given replacementTagID
-func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64, toReplaceTagIDs []int64, replacementTagID int64) error {
+func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64, tagType gormmodel.TagType, toReplaceTagIDs []int64, replacementTagID int64) error {
 	metadataIDSelectQuery := `SELECT DISTINCT t1.metadata_item_id
 							  FROM taggings t1
+							  INNER JOIN tags t2 ON t2.id = t1.tag_id AND t2.tag_type = ?
 							  WHERE t1.tag_id IN (?)`
 
 	var metadataIDs []int64
-	if metadataSelectErr := g.db.Raw(metadataIDSelectQuery, toReplaceTagIDs).Find(&metadataIDs).Error; metadataSelectErr != nil {
-		return fmt.Errorf("failed to select metadata IDs for %d genres: %w", len(toReplaceTagIDs), metadataSelectErr)
+	if metadataSelectErr := g.db.Raw(metadataIDSelectQuery, int(tagType), toReplaceTagIDs).Find(&metadataIDs).Error; metadataSelectErr != nil {
+		return fmt.Errorf("failed to select metadata IDs for %d replacement tags of type %d: %w", len(toReplaceTagIDs), int(tagType), metadataSelectErr)
 	}
 
 	deleteTaggingsQuery := `DELETE FROM taggings WHERE metadata_item_id = ? AND tag_id IN (?)`
-	getGenreQueries := `SELECT taggings.id FROM taggings 
+	getTagsQueries := `SELECT taggings.id FROM taggings 
 						INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type = ?
 						WHERE taggings.metadata_item_id = ?
 						ORDER BY "taggings.index" ASC`
 	tagIndexUpdateQuery := `UPDATE taggings SET "index" = ? WHERE id = ?`
 	for _, metadataID := range metadataIDs {
-		// Delete the association to the genres to be merged
+		// Delete the association to the tags to be merged
 		if deleteErr := g.db.Exec(deleteTaggingsQuery, metadataID, toReplaceTagIDs).Error; deleteErr != nil {
-			return fmt.Errorf("failed to delete %d genre associations for metadata ID %d: %w", len(toReplaceTagIDs), metadataID, deleteErr)
+			return fmt.Errorf("failed to delete %d tag associations of type %d for metadata ID %d: %w", len(toReplaceTagIDs), int(tagType), metadataID, deleteErr)
 		}
 
-		// Rebuild the indices of the remaining genres to fill in gaps
+		// Rebuild the indices of the remaining tags to fill in gaps
 		var tagIDs []int64
-		if getGenresErr := g.db.Raw(getGenreQueries, genreTagType, metadataID).Scan(&tagIDs).Error; getGenresErr != nil {
-			return fmt.Errorf("failed to get all genres for metadata ID %d after deletion: %w", metadataID, getGenresErr)
+		if getTagsErr := g.db.Raw(getTagsQueries, int(tagType), metadataID).Scan(&tagIDs).Error; getTagsErr != nil {
+			return fmt.Errorf("failed to get all tags for metadata ID %d after deletion: %w", metadataID, getTagsErr)
 		}
 
 		hasMergeTarget := false

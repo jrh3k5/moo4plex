@@ -37,5 +37,5 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 		toMergeIDs[mergeIndex] = mergeable.ID
 	}
 
-	return g.gormTagService.ReplaceTags(ctx, mergeTarget.MediaLibraryID, toMergeIDs, mergeTarget.ID)
+	return g.gormTagService.ReplaceTags(ctx, mergeTarget.MediaLibraryID, gormmodel.Genre, toMergeIDs, mergeTarget.ID)
 }

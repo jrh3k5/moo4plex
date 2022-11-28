@@ -2,9 +2,11 @@ package media
 
 import (
 	"context"
+	"fmt"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
 	"github.com/jrh3k5/moo4plex/ui/services"
 )
@@ -12,13 +14,18 @@ import (
 // ItemEditActionContainer is a component that allows for the editing of a component
 type ItemEditActionContainer struct {
 	editorContainer  fyne.CanvasObject
+	editorLabel      *widget.Label
 	serviceContainer *services.ServiceContainer
+	actorAdder       *ActorAdder
 }
 
 func NewItemEditActionContainer(serviceContainer *services.ServiceContainer) *ItemEditActionContainer {
 	actionContainer := &ItemEditActionContainer{
 		serviceContainer: serviceContainer,
 	}
+
+	editorLabel := widget.NewLabel("Item:")
+	actionContainer.editorLabel = editorLabel
 
 	actorRemover := NewActorRemover(serviceContainer)
 	actorAdder := NewActorAdder(serviceContainer)
@@ -30,6 +37,7 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer) *It
 	editorAppTabs.SetTabLocation(container.TabLocationBottom)
 
 	actionContainer.editorContainer = editorAppTabs
+	actionContainer.actorAdder = actorAdder
 
 	return actionContainer
 }
@@ -39,6 +47,7 @@ func (i *ItemEditActionContainer) GetObject() fyne.CanvasObject {
 }
 
 func (i *ItemEditActionContainer) SetItem(ctx context.Context, mediaItem *model.MediaItem) error {
-	// TODO: implement
+	i.editorLabel.SetText(fmt.Sprintf("Item: %s", mediaItem.Name))
+	i.actorAdder.SetMediaItem(ctx, mediaItem.ID)
 	return nil
 }
