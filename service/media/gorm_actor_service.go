@@ -26,7 +26,7 @@ func (g *GORMActorService) GetActorsForItem(ctx context.Context, mediaItemID int
 
 	actors := make([]*model.Actor, len(tags))
 	for tagIndex, tag := range tags {
-		actors[tagIndex] = model.NewActor(tag.ID, tag.Tag)
+		actors[tagIndex] = model.NewActor(tag.ID, tag.Tag, tag.UserThumbURL)
 	}
 	return actors, nil
 }

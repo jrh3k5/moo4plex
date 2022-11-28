@@ -23,7 +23,7 @@ func NewGORMTagService(db *gorm.DB) *GORMTagService {
 // GetTagsForLibrarySection gets the tags for the given library section ID and tag type
 func (g *GORMTagService) GetTagsForLibrarySection(ctx context.Context, tagType gormmodel.TagType, librarySectionID int64) ([]*gormmodel.Tag, error) {
 	var tags []*gormmodel.Tag
-	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id").
+	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id, tags.user_thumb_url").
 		Joins("inner join taggings on taggings.tag_id = tags.id").
 		Joins("inner join metadata_items on metadata_items.id = taggings.metadata_item_id and metadata_items.library_section_id = ?", librarySectionID).
 		Find(&tags, "tag_type = ?", int(tagType))
@@ -36,7 +36,7 @@ func (g *GORMTagService) GetTagsForLibrarySection(ctx context.Context, tagType g
 // GetTagsForMetadataItem gets tags of the given type for the given metadata item
 func (g *GORMTagService) GetTagsForMetadataItem(ctx context.Context, tagType gormmodel.TagType, metadataItemID int64) ([]*gormmodel.Tag, error) {
 	var tags []*gormmodel.Tag
-	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id").
+	queryDB := g.db.WithContext(ctx).Distinct("tags.id, tags.tag, tags.tag_type, metadata_items.library_section_id, tags.user_thumb_url").
 		Joins("inner join taggings on taggings.tag_id = tags.id and taggings.metadata_item_id = ?", metadataItemID).
 		Joins("inner join metadata_items on metadata_items.id = taggings.metadata_item_id").
 		Find(&tags, "tags.tag_type = ?", int(tagType))
