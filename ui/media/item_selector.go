@@ -69,6 +69,9 @@ func (i *ItemSelector) SetMediaLibrary(ctx context.Context, mediaLibraryID int64
 		return mediaTypeNames[i] < mediaTypeNames[j]
 	})
 	i.mediaTypeSelector.Options = mediaTypeNames
+	if len(mediaTypeNames) == 1 {
+		i.mediaTypeSelector.SetSelected(mediaTypeNames[0])
+	}
 	i.mediaTypeSelector.Refresh()
 	return nil
 }
