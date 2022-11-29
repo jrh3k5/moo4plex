@@ -18,6 +18,7 @@ type ItemEditActionContainer struct {
 	serviceContainer *services.ServiceContainer
 	actorList        *ActorListMediaItem
 	actorAdder       *ActorAdder
+	actorRemover     *ActorRemover
 }
 
 func NewItemEditActionContainer(serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditActionContainer {
@@ -28,7 +29,7 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer, par
 	editorLabel := widget.NewLabel("Item:")
 	actionContainer.editorLabel = editorLabel
 
-	actorRemover := NewActorRemover(serviceContainer)
+	actorRemover := NewActorRemover(serviceContainer, parentWindow)
 	actorAdder := NewActorAdder(serviceContainer)
 	actorList := NewActorListMediaItem(serviceContainer, parentWindow)
 
@@ -41,6 +42,7 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer, par
 
 	actionContainer.editorContainer = editorAppTabs
 	actionContainer.actorAdder = actorAdder
+	actionContainer.actorRemover = actorRemover
 	actionContainer.actorList = actorList
 
 	return actionContainer
@@ -54,6 +56,7 @@ func (i *ItemEditActionContainer) GetObject() fyne.CanvasObject {
 func (i *ItemEditActionContainer) SetItem(ctx context.Context, mediaItem *model.MediaItem) error {
 	i.editorLabel.SetText(fmt.Sprintf("Item: %s", mediaItem.Name))
 	i.actorAdder.SetMediaItem(ctx, mediaItem.ID)
+	i.actorRemover.SetMediaItem(ctx, mediaItem.ID)
 	i.actorList.SetMediaItem(ctx, mediaItem.ID)
 	return nil
 }
