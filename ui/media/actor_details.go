@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
+	"github.com/jrh3k5/moo4plex/ui/component"
 )
 
 // ActorDetails will show details about a particular actor
@@ -16,6 +17,7 @@ type ActorDetails struct {
 	actorImageContainer *fyne.Container
 	actorNameLabel      *widget.Label
 	detailsContainer    fyne.CanvasObject
+	movieList           *component.ReadOnlyList[*model.MediaItem]
 }
 
 func NewActorDetails() *ActorDetails {
@@ -26,7 +28,12 @@ func NewActorDetails() *ActorDetails {
 	detailsView.actorNameLabel = widget.NewLabel("")
 	detailsView.actorNameLabel.Alignment = fyne.TextAlignCenter
 
-	detailsView.detailsContainer = container.NewBorder(nil, detailsView.actorNameLabel, nil, nil, detailsView.actorImageContainer)
+	detailsView.movieList = component.NewReadOnlyList(func(m *model.MediaItem) string {
+		return m.Name
+	})
+
+	bioDetailsContainer := container.NewBorder(nil, detailsView.actorNameLabel, nil, nil, detailsView.actorImageContainer)
+	detailsView.detailsContainer = container.NewGridWithRows(2, bioDetailsContainer, detailsView.movieList.GetObject())
 
 	return detailsView
 }
@@ -44,21 +51,31 @@ func (a *ActorDetails) ClearActor() {
 
 // SetActor sets the actor details to be shown
 func (a *ActorDetails) SetActor(actor *model.Actor) error {
-	if actor.ThumbnailURL != "" {
-		imageResource, err := fyne.LoadResourceFromURLString(actor.ThumbnailURL)
-		if err != nil {
-			return fmt.Errorf("failed to load image from URL '%s': %w", actor.ThumbnailURL, err)
+	// TODO: make image load cancellable?
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("ERROR: panic occurred while trying to load image for actor: %v\n", r)
+			}
+		}()
+
+		if actor.ThumbnailURL != "" {
+			imageResource, err := fyne.LoadResourceFromURLString(actor.ThumbnailURL)
+			if err != nil {
+				fmt.Printf("ERROR: failed to load image from URL '%s': %v\n", actor.ThumbnailURL, err)
+				return
+			}
+			if a.actorImage == nil {
+				a.actorImage = canvas.NewImageFromResource(imageResource)
+				a.actorImage.FillMode = canvas.ImageFillContain
+				a.actorImageContainer.Add(a.actorImage)
+				a.actorImageContainer.Refresh()
+			} else {
+				a.actorImage.Resource = imageResource
+				a.actorImage.Refresh()
+			}
 		}
-		if a.actorImage == nil {
-			a.actorImage = canvas.NewImageFromResource(imageResource)
-			a.actorImage.FillMode = canvas.ImageFillContain
-			a.actorImageContainer.Add(a.actorImage)
-			a.actorImageContainer.Refresh()
-		} else {
-			a.actorImage.Resource = imageResource
-			a.actorImage.Refresh()
-		}
-	}
+	}()
 	a.actorNameLabel.SetText(actor.Name)
 	return nil
 }
