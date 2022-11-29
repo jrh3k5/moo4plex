@@ -20,7 +20,7 @@ type ItemEditActionContainer struct {
 	actorAdder       *ActorAdder
 }
 
-func NewItemEditActionContainer(serviceContainer *services.ServiceContainer) *ItemEditActionContainer {
+func NewItemEditActionContainer(serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditActionContainer {
 	actionContainer := &ItemEditActionContainer{
 		serviceContainer: serviceContainer,
 	}
@@ -30,7 +30,7 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer) *It
 
 	actorRemover := NewActorRemover(serviceContainer)
 	actorAdder := NewActorAdder(serviceContainer)
-	actorList := NewActorListMediaItem(serviceContainer)
+	actorList := NewActorListMediaItem(serviceContainer, parentWindow)
 
 	editorAppTabs := container.NewAppTabs(
 		container.NewTabItem("Actor List", actorList.GetObject()),
