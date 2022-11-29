@@ -6,6 +6,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
 	"github.com/jrh3k5/moo4plex/ui/services"
@@ -21,7 +22,7 @@ type ItemEditActionContainer struct {
 	actorRemover     *ActorRemover
 }
 
-func NewItemEditActionContainer(serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditActionContainer {
+func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditActionContainer {
 	actionContainer := &ItemEditActionContainer{
 		serviceContainer: serviceContainer,
 	}
@@ -29,7 +30,11 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer, par
 	editorLabel := widget.NewLabel("Item:")
 	actionContainer.editorLabel = editorLabel
 
-	actorRemover := NewActorRemover(serviceContainer, parentWindow)
+	actorRemover := NewActorRemover(ctx, serviceContainer, parentWindow, func() {
+		if refreshErr := actionContainer.refreshData(ctx); refreshErr != nil {
+			dialog.ShowError(fmt.Errorf("failed to refresh data after removal: %w", refreshErr), *parentWindow)
+		}
+	})
 	actorAdder := NewActorAdder(serviceContainer)
 	actorList := NewActorListMediaItem(serviceContainer, parentWindow)
 
@@ -50,6 +55,13 @@ func NewItemEditActionContainer(serviceContainer *services.ServiceContainer, par
 
 func (i *ItemEditActionContainer) GetObject() fyne.CanvasObject {
 	return i.editorContainer
+}
+
+func (i *ItemEditActionContainer) refreshData(ctx context.Context) error {
+	if removeRefreshErr := i.actorRemover.RefreshMediaItem(ctx); removeRefreshErr != nil {
+		return fmt.Errorf("failed to refresh data within actor remover: %w", removeRefreshErr)
+	}
+	return nil
 }
 
 // SetItem sets the media item to be used in the context of this component

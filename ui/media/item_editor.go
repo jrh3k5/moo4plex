@@ -21,7 +21,7 @@ type ItemEditor struct {
 func NewItemEditor(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditor {
 	itemEditor := &ItemEditor{}
 
-	itemEditActionContainer := NewItemEditActionContainer(serviceContainer, parentWindow)
+	itemEditActionContainer := NewItemEditActionContainer(ctx, serviceContainer, parentWindow)
 	itemSelector := NewItemSelector(ctx, serviceContainer, parentWindow, func(m *model.MediaItem) {
 		if setErr := itemEditActionContainer.SetItem(ctx, m); setErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to set action container to media item '%s': %w", m.Name, setErr), *parentWindow)

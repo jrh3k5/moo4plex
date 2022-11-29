@@ -30,3 +30,7 @@ func (g *GORMActorService) GetActorsForItem(ctx context.Context, mediaItemID int
 	}
 	return actors, nil
 }
+
+func (g *GORMActorService) RemoveActorFromItem(ctx context.Context, mediaItemID int64, actorID int64) error {
+	return g.gormTagService.RemoveTagsFromItem(ctx, mediaItemID, gormmodel.Actor, []int64{actorID})
+}

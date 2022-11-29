@@ -46,6 +46,18 @@ func (g *GORMTagService) GetTagsForMetadataItem(ctx context.Context, tagType gor
 	return tags, nil
 }
 
+// RemoveTagsFromItem will disassociate all of the given tags from the given metadata item
+func (g *GORMTagService) RemoveTagsFromItem(ctx context.Context, metadataID int64, tagType gormmodel.TagType, tagIDs []int64) error {
+	deleteTagsQuery := `DELETE 
+						FROM taggings
+						WHERE taggings.metadata_item_id = ? AND tag_id IN (?)`
+	if dbErr := g.db.WithContext(ctx).Exec(deleteTagsQuery, metadataID, tagIDs).Error; dbErr != nil {
+		return fmt.Errorf("failed to delete %d tags for metadata ID %d: %w", len(tagIDs), metadataID, dbErr)
+	}
+
+	return g.reorderTags(ctx, metadataID, tagType)
+}
+
 // ReplaceTags replaces all associations of the given toReplaceTagIDs in the given media library section with the given replacementTagID
 func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64, tagType gormmodel.TagType, toReplaceTagIDs []int64, replacementTagID int64) error {
 	metadataIDSelectQuery := `SELECT DISTINCT t1.metadata_item_id
@@ -59,11 +71,6 @@ func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64
 	}
 
 	deleteTaggingsQuery := `DELETE FROM taggings WHERE metadata_item_id = ? AND tag_id IN (?)`
-	getTagsQueries := `SELECT taggings.id FROM taggings 
-						INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type = ?
-						WHERE taggings.metadata_item_id = ?
-						ORDER BY "taggings.index" ASC`
-	tagIndexUpdateQuery := `UPDATE taggings SET "index" = ? WHERE id = ?`
 	for _, metadataID := range metadataIDs {
 		// Delete the association to the tags to be merged
 		if deleteErr := g.db.Exec(deleteTaggingsQuery, metadataID, toReplaceTagIDs).Error; deleteErr != nil {
@@ -71,17 +78,21 @@ func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64
 		}
 
 		// Rebuild the indices of the remaining tags to fill in gaps
-		var tagIDs []int64
-		if getTagsErr := g.db.Raw(getTagsQueries, int(tagType), metadataID).Scan(&tagIDs).Error; getTagsErr != nil {
-			return fmt.Errorf("failed to get all tags for metadata ID %d after deletion: %w", metadataID, getTagsErr)
+		if reorderErr := g.reorderTags(ctx, metadataID, tagType); reorderErr != nil {
+			return fmt.Errorf("failed to reorder tags of type '%v' for metadata ID %d: %w", tagType, metadataID, reorderErr)
 		}
 
 		hasMergeTarget := false
-		for tagIndex, tagID := range tagIDs {
-			if updateErr := g.db.Exec(tagIndexUpdateQuery, tagIndex, tagID).Error; updateErr != nil {
-				return fmt.Errorf("failed to update tag ID %d to index %d for metadata ID %d: %w", tagID, tagIndex, metadataID, updateErr)
+		tagIDs, getTagIDsErr := g.getTagIDs(ctx, metadataID, tagType)
+		if getTagIDsErr != nil {
+			return fmt.Errorf("failed to retrieve tag IDs of type '%v' for metadata ID %d after reordering: %w", tagType, metadataID, getTagIDsErr)
+		} else {
+			for _, tagID := range tagIDs {
+				hasMergeTarget = tagID == replacementTagID
+				if hasMergeTarget {
+					break
+				}
 			}
-			hasMergeTarget = hasMergeTarget || tagID == replacementTagID
 		}
 
 		// Now create the new tag, if it doesn't exist
@@ -101,4 +112,36 @@ func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64
 	// Don't actually delete the tag because it has a collating tokenizer not recognized by this driver
 
 	return nil
+}
+
+// reorderTags pulls the tags of the given type for the given media item ID and rebuilds their indices
+// so that any deleted tags' gaps are now filled and sequential ordering of the indices is maintained
+func (g *GORMTagService) reorderTags(ctx context.Context, metadataID int64, tagType gormmodel.TagType) error {
+	tagIndexUpdateQuery := `UPDATE taggings SET "index" = ? WHERE id = ?`
+
+	tagIDs, getTagsErr := g.getTagIDs(ctx, metadataID, tagType)
+	if getTagsErr != nil {
+		return fmt.Errorf("failed to get all tags for metadata ID %d after deletion: %w", metadataID, getTagsErr)
+	}
+
+	for tagIndex, tagID := range tagIDs {
+		if updateErr := g.db.WithContext(ctx).Exec(tagIndexUpdateQuery, tagIndex, tagID).Error; updateErr != nil {
+			return fmt.Errorf("failed to update tag ID %d to index %d for metadata ID %d: %w", tagID, tagIndex, metadataID, updateErr)
+		}
+	}
+
+	return nil
+}
+
+func (g *GORMTagService) getTagIDs(ctx context.Context, metadataID int64, tagType gormmodel.TagType) ([]int64, error) {
+	getTagIDsQuery := `SELECT taggings.id FROM taggings 
+					   INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type = ?
+					   WHERE taggings.metadata_item_id = ?
+					   ORDER BY "taggings.index" ASC`
+
+	var tagIDs []int64
+	if getTagsErr := g.db.WithContext(ctx).Raw(getTagIDsQuery, int(tagType), metadataID).Scan(&tagIDs).Error; getTagsErr != nil {
+		return nil, fmt.Errorf("failed to get all tag IDs of type %v for metadata ID %d: %w", metadataID, tagType, getTagsErr)
+	}
+	return tagIDs, nil
 }
