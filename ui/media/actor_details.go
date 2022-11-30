@@ -55,6 +55,7 @@ func (a *ActorDetails) ClearActor() {
 	a.actorImageContainer.RemoveAll()
 	a.actorImage = nil
 	a.actorNameLabel.SetText("")
+	a.movieList.ClearData()
 }
 
 // SetActor sets the actor details to be shown

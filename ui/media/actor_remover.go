@@ -21,7 +21,7 @@ type ActorRemover struct {
 	actorDetails       *ActorDetails
 	removeActorButton  *widget.Button
 	currentMediaItemID int64
-	currentActorID     int64
+	currentActor       *model.Actor
 }
 
 func NewActorRemover(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, onSave func()) *ActorRemover {
@@ -37,14 +37,21 @@ func NewActorRemover(ctx context.Context, serviceContainer *services.ServiceCont
 			dialog.ShowError(fmt.Errorf("failed to set details for actor '%s'", a.Name), *parentWindow)
 		}
 		actorRemover.removeActorButton.Enable()
-		actorRemover.currentActorID = a.ID
+		actorRemover.currentActor = a
 	})
 	removeActorButton := widget.NewButton("Remove Actor", func() {
-		if removeErr := serviceContainer.GetActorService().RemoveActorFromItem(ctx, actorRemover.currentMediaItemID, actorRemover.currentActorID); removeErr != nil {
-			dialog.ShowError(fmt.Errorf("failed to remove actor ID '%d' from media item ID '%d': %w", actorRemover.currentActorID, actorRemover.currentMediaItemID, removeErr), *parentWindow)
-			return
-		}
-		onSave()
+		dialog.ShowConfirm("Confirm Actor Removal", fmt.Sprintf("You are about to remove the actor '%s'. Do you wish to continue?", actorRemover.currentActor.Name), func(confirmed bool) {
+			if !confirmed {
+				return
+			}
+
+			if removeErr := serviceContainer.GetActorService().RemoveActorFromItem(ctx, actorRemover.currentMediaItemID, actorRemover.currentActor.ID); removeErr != nil {
+				dialog.ShowError(fmt.Errorf("failed to remove actor ID '%d' from media item ID '%d': %w", actorRemover.currentActor.ID, actorRemover.currentMediaItemID, removeErr), *parentWindow)
+				return
+			}
+
+			onSave()
+		}, *parentWindow)
 	})
 	removeActorButton.Disable()
 
@@ -68,8 +75,9 @@ func (a *ActorRemover) RefreshMediaItem(ctx context.Context) error {
 			return fmt.Errorf("failed to set the media to item ID %d: %w", a.currentMediaItemID, setErr)
 		}
 	}
-	a.currentActorID = 0
+	a.currentActor = nil
 	a.actorDetails.ClearActor()
+	a.removeActorButton.Disable()
 	return nil
 }
 
