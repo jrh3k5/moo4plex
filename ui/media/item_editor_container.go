@@ -45,7 +45,7 @@ func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.
 	)
 	editorAppTabs.SetTabLocation(container.TabLocationBottom)
 
-	actionContainer.editorContainer = editorAppTabs
+	actionContainer.editorContainer = container.NewBorder(editorLabel, nil, nil, nil, editorAppTabs)
 	actionContainer.actorAdder = actorAdder
 	actionContainer.actorRemover = actorRemover
 	actionContainer.actorList = actorList

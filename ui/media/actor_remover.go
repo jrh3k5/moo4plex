@@ -92,6 +92,7 @@ func (a *ActorRemover) SetMediaItem(ctx context.Context, mediaItemID int64) erro
 	})
 	a.actorList.SetData(actors)
 	a.actorDetails.ClearActor()
+	a.removeActorButton.Disable()
 
 	a.currentMediaItemID = mediaItemID
 

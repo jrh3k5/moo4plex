@@ -74,7 +74,12 @@ func (a *ActorDetails) SetActor(ctx context.Context, actor *model.Actor) error {
 	})
 	a.movieList.SetData(mediaItems)
 
-	// TODO: make image load cancellable?
+	// Clear out the actor image that may have been previously shown
+	if a.actorImage != nil {
+		a.actorImage.Resource = nil
+		a.actorImage.Refresh()
+	}
+
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
