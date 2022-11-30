@@ -88,6 +88,7 @@ func (a *ActorDetails) SetActor(ctx context.Context, actor *model.Actor) error {
 		}()
 
 		cancelCtx, cancelFunc := context.WithCancel(context.Background())
+		defer cancelFunc()
 		a.imageLoadCancel = cancelFunc
 
 		if actor.ThumbnailURL != "" {
