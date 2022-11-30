@@ -36,7 +36,7 @@ func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.
 			dialog.ShowError(fmt.Errorf("failed to refresh data after removal: %w", refreshErr), *parentWindow)
 		}
 	})
-	actorAdder := NewActorAdder(serviceContainer)
+	actorAdder := NewActorAdder(ctx, serviceContainer)
 	actorList := NewActorListMediaItem(ctx, serviceContainer, parentWindow)
 
 	editorAppTabs := container.NewAppTabs(
@@ -73,6 +73,9 @@ func (i *ItemEditActionContainer) SetMediaLibrary(ctx context.Context, mediaLibr
 // SetItem sets the media item to be used in the context of this component
 func (i *ItemEditActionContainer) SetItem(ctx context.Context, mediaItem *model.MediaItem) error {
 	i.editorLabel.SetText(fmt.Sprintf("Item: %s", mediaItem.Name))
+	if setErr := i.actorAdder.SetMediaItem(ctx, mediaItem.ID); setErr != nil {
+		return fmt.Errorf("failed to set media items in actor adder: %w", setErr)
+	}
 	if setErr := i.actorRemover.SetMediaItem(ctx, mediaItem.ID); setErr != nil {
 		return fmt.Errorf("failed to set media items in actor remover: %w", setErr)
 	}
