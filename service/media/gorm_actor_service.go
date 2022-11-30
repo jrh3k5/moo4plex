@@ -31,6 +31,19 @@ func (g *GORMActorService) GetActorsForItem(ctx context.Context, mediaItemID int
 	return actors, nil
 }
 
+func (g *GORMActorService) GetActorsForMediaLibrary(ctx context.Context, mediaLibraryID int64) ([]*model.Actor, error) {
+	tags, err := g.gormTagService.GetTagsForLibrarySection(ctx, gormmodel.Actor, mediaLibraryID)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get actor tags for media library ID %d: %w", mediaLibraryID, err)
+	}
+
+	actors := make([]*model.Actor, len(tags))
+	for tagIndex, tag := range tags {
+		actors[tagIndex] = model.NewActor(tag.ID, tag.Tag, tag.UserThumbURL)
+	}
+	return actors, nil
+}
+
 func (g *GORMActorService) GetMediaItemsForActor(ctx context.Context, actorID int64, mediaType model.MediaType) ([]*model.MediaItem, error) {
 	metadataItems, err := g.gormTagService.GetMetadataItemsForTags(ctx, []int64{actorID})
 	if err != nil {
@@ -39,7 +52,7 @@ func (g *GORMActorService) GetMediaItemsForActor(ctx context.Context, actorID in
 
 	mediaItems := make([]*model.MediaItem, len(metadataItems))
 	for metadataItemIndex, metadataItem := range metadataItems {
-		mediaItems[metadataItemIndex] = model.NewMediaItem(metadataItem.ID, metadataItem.Title)
+		mediaItems[metadataItemIndex] = model.NewMediaItem(metadataItem.ID, metadataItem.Title, metadataItem.LibrarySectionID)
 	}
 	return mediaItems, nil
 }

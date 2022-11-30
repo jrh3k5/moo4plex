@@ -26,7 +26,7 @@ func (g *GORMTagService) GetMetadataItemsForTags(ctx context.Context, tagIDs []i
 	// 				  FROM metadata_items mi
 	// 				  INNER JOIN taggings ON taggings.metadata_item_id = mi.id AND taggings.tag_id IN (?)`
 	var metadataItems []*gormmodel.MetadataItem
-	if dbErr := g.db.WithContext(ctx).Select("metadata_items.id, metadata_items.title").
+	if dbErr := g.db.WithContext(ctx).Select("metadata_items.id, metadata_items.title, metadata_items.library_section_id").
 		Joins("INNER JOIN taggings on taggings.metadata_item_id = metadata_items.id AND taggings.tag_id IN (?)", tagIDs).
 		Find(&metadataItems).Error; dbErr != nil {
 		return nil, fmt.Errorf("failed to look up metadata items for %d tags: %w", len(tagIDs), dbErr)

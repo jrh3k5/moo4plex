@@ -35,14 +35,19 @@ func (a *ActorAdder) GetObject() fyne.CanvasObject {
 	return a.actorList.GetObject()
 }
 
-func (a *ActorAdder) SetMediaItem(ctx context.Context, mediaItemID int64) error {
-	actors, err := a.serviceContainer.GetActorService().GetActorsForItem(ctx, mediaItemID)
+func (a *ActorAdder) SetMediaLibrary(ctx context.Context, mediaLibraryID int64) error {
+	actors, err := a.serviceContainer.GetActorService().GetActorsForMediaLibrary(ctx, mediaLibraryID)
 	if err != nil {
-		return fmt.Errorf("failed to load actors for media item ID %d: %w", mediaItemID, err)
+		return fmt.Errorf("failed to load actors for media library ID %d: %w", mediaLibraryID, err)
 	}
 	sort.Slice(actors, func(i, j int) bool {
 		return actors[i].Name < actors[j].Name
 	})
 	a.actorList.SetData(actors)
+	return nil
+}
+
+func (a *ActorAdder) SetMediaItem(ctx context.Context, mediaItemID int64) error {
+	// TODO: implement
 	return nil
 }

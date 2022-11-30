@@ -22,6 +22,7 @@ type ItemEditActionContainer struct {
 	actorRemover     *ActorRemover
 }
 
+// NewItemEditActionContainer creates a new instance of ItemEditActionContainer
 func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditActionContainer {
 	actionContainer := &ItemEditActionContainer{
 		serviceContainer: serviceContainer,
@@ -64,11 +65,19 @@ func (i *ItemEditActionContainer) refreshData(ctx context.Context) error {
 	return nil
 }
 
+// SetMediaLibrary sets the media library in context of this component
+func (i *ItemEditActionContainer) SetMediaLibrary(ctx context.Context, mediaLibraryID int64) error {
+	return i.actorAdder.SetMediaLibrary(ctx, mediaLibraryID)
+}
+
 // SetItem sets the media item to be used in the context of this component
 func (i *ItemEditActionContainer) SetItem(ctx context.Context, mediaItem *model.MediaItem) error {
 	i.editorLabel.SetText(fmt.Sprintf("Item: %s", mediaItem.Name))
-	i.actorAdder.SetMediaItem(ctx, mediaItem.ID)
-	i.actorRemover.SetMediaItem(ctx, mediaItem.ID)
-	i.actorList.SetMediaItem(ctx, mediaItem.ID)
+	if setErr := i.actorRemover.SetMediaItem(ctx, mediaItem.ID); setErr != nil {
+		return fmt.Errorf("failed to set media items in actor remover: %w", setErr)
+	}
+	if setErr := i.actorList.SetMediaItem(ctx, mediaItem.ID); setErr != nil {
+		return fmt.Errorf("failed to set media item on actor list: %w", setErr)
+	}
 	return nil
 }

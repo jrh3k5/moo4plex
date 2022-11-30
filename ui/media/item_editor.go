@@ -13,8 +13,9 @@ import (
 
 // ItemEditor is a component that allows an item to be selected and subsequently edited
 type ItemEditor struct {
-	container    fyne.CanvasObject
-	itemSelector *ItemSelector
+	container               fyne.CanvasObject
+	itemSelector            *ItemSelector
+	itemEditActionContainer *ItemEditActionContainer
 }
 
 // NewEditor creates a new instance of ItemEditor
@@ -29,6 +30,7 @@ func NewItemEditor(ctx context.Context, serviceContainer *services.ServiceContai
 	})
 	itemEditor.container = container.NewGridWithRows(2, itemSelector.GetObject(), itemEditActionContainer.GetObject())
 	itemEditor.itemSelector = itemSelector
+	itemEditor.itemEditActionContainer = itemEditActionContainer
 
 	return itemEditor
 }
@@ -39,5 +41,11 @@ func (i *ItemEditor) GetObject() fyne.CanvasObject {
 
 // SetMediaLibrary sets the media library in context for this component
 func (i *ItemEditor) SetMediaLibrary(ctx context.Context, mediaLibraryID int64) error {
-	return i.itemSelector.SetMediaLibrary(ctx, mediaLibraryID)
+	if setErr := i.itemEditActionContainer.SetMediaLibrary(ctx, mediaLibraryID); setErr != nil {
+		return fmt.Errorf("failed to set media library in item edit action container: %w", setErr)
+	}
+	if setErr := i.itemSelector.SetMediaLibrary(ctx, mediaLibraryID); setErr != nil {
+		return fmt.Errorf("failed to set media library in item selector: %w", setErr)
+	}
+	return nil
 }
