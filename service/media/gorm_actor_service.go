@@ -31,6 +31,19 @@ func (g *GORMActorService) GetActorsForItem(ctx context.Context, mediaItemID int
 	return actors, nil
 }
 
+func (g *GORMActorService) GetMediaItemsForActor(ctx context.Context, actorID int64, mediaType model.MediaType) ([]*model.MediaItem, error) {
+	metadataItems, err := g.gormTagService.GetMetadataItemsForTags(ctx, []int64{actorID})
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve metadata items for actor ID %d: %w", actorID, err)
+	}
+
+	mediaItems := make([]*model.MediaItem, len(metadataItems))
+	for metadataItemIndex, metadataItem := range metadataItems {
+		mediaItems[metadataItemIndex] = model.NewMediaItem(metadataItem.ID, metadataItem.Title)
+	}
+	return mediaItems, nil
+}
+
 func (g *GORMActorService) RemoveActorFromItem(ctx context.Context, mediaItemID int64, actorID int64) error {
 	return g.gormTagService.RemoveTagsFromItem(ctx, mediaItemID, gormmodel.Actor, []int64{actorID})
 }

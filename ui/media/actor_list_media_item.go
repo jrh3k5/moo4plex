@@ -21,18 +21,19 @@ type ActorListMediaItem struct {
 	actorDetails     *ActorDetails
 }
 
-func NewActorListMediaItem(serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ActorListMediaItem {
+// NewActorListMediaItem creates a new instance of ActorListMediaItem
+func NewActorListMediaItem(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ActorListMediaItem {
 	item := &ActorListMediaItem{
 		serviceContainer: serviceContainer,
 	}
 
-	actorDetails := NewActorDetails()
+	actorDetails := NewActorDetails(serviceContainer)
 
 	actorList := component.NewClickableList(func(a *model.Actor) string {
 		return a.Name
 	}, func(a *model.Actor) {
-		if setErr := actorDetails.SetActor(a); setErr != nil {
-			dialog.ShowError(fmt.Errorf("failed to set details for actor '%s'", a.Name), *parentWindow)
+		if setErr := actorDetails.SetActor(ctx, a); setErr != nil {
+			dialog.ShowError(fmt.Errorf("failed to set details for actor '%s': %w", a.Name, setErr), *parentWindow)
 		}
 	})
 

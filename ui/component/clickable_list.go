@@ -26,7 +26,7 @@ func NewClickableList[V any](nameGetter func(V) string, clickHandler func(V)) *C
 
 	dataList := widget.NewList(func() int {
 		numData := len(clickableList.currentData)
-		if numData < 10 {
+		if numData == 0 {
 			return 10
 		}
 		return numData

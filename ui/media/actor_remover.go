@@ -29,11 +29,11 @@ func NewActorRemover(ctx context.Context, serviceContainer *services.ServiceCont
 		serviceContainer: serviceContainer,
 	}
 
-	actorDetails := NewActorDetails()
+	actorDetails := NewActorDetails(serviceContainer)
 	actorList := component.NewClickableList(func(a *model.Actor) string {
 		return a.Name
 	}, func(a *model.Actor) {
-		if setErr := actorDetails.SetActor(a); setErr != nil {
+		if setErr := actorDetails.SetActor(ctx, a); setErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to set details for actor '%s'", a.Name), *parentWindow)
 		}
 		actorRemover.removeActorButton.Enable()

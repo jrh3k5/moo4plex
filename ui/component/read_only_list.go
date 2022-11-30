@@ -19,7 +19,7 @@ func NewReadOnlyList[V any](nameGetter func(V) string) *ReadOnlyList[V] {
 
 	dataList := widget.NewList(func() int {
 		numData := len(readOnlyList.allData)
-		if numData < 10 {
+		if numData == 0 {
 			return 10
 		}
 		return numData

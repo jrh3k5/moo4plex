@@ -20,6 +20,20 @@ func NewGORMTagService(db *gorm.DB) *GORMTagService {
 	}
 }
 
+// GetMetadataItemsForTags gets the metadata items associated to the given tags
+func (g *GORMTagService) GetMetadataItemsForTags(ctx context.Context, tagIDs []int64) ([]*gormmodel.MetadataItem, error) {
+	// getMediaItems := `SELECT mi.id, mi.title
+	// 				  FROM metadata_items mi
+	// 				  INNER JOIN taggings ON taggings.metadata_item_id = mi.id AND taggings.tag_id IN (?)`
+	var metadataItems []*gormmodel.MetadataItem
+	if dbErr := g.db.WithContext(ctx).Select("metadata_items.id, metadata_items.title").
+		Joins("INNER JOIN taggings on taggings.metadata_item_id = metadata_items.id AND taggings.tag_id IN (?)", tagIDs).
+		Find(&metadataItems).Error; dbErr != nil {
+		return nil, fmt.Errorf("failed to look up metadata items for %d tags: %w", len(tagIDs), dbErr)
+	}
+	return metadataItems, nil
+}
+
 // GetTagsForLibrarySection gets the tags for the given library section ID and tag type
 func (g *GORMTagService) GetTagsForLibrarySection(ctx context.Context, tagType gormmodel.TagType, librarySectionID int64) ([]*gormmodel.Tag, error) {
 	var tags []*gormmodel.Tag

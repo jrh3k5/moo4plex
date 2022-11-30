@@ -36,7 +36,7 @@ func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.
 		}
 	})
 	actorAdder := NewActorAdder(serviceContainer)
-	actorList := NewActorListMediaItem(serviceContainer, parentWindow)
+	actorList := NewActorListMediaItem(ctx, serviceContainer, parentWindow)
 
 	editorAppTabs := container.NewAppTabs(
 		container.NewTabItem("Actor List", actorList.GetObject()),
