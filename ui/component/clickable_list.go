@@ -86,6 +86,11 @@ func (c *ClickableList[V]) SetData(data []V) {
 	c.listFilter.Enable()
 }
 
+// SetPlaceholder sets the placeholder text to be shown
+func (c *ClickableList[V]) SetPlaceholder(placeholderText string) {
+	c.listFilter.SetPlaceHolder(placeholderText)
+}
+
 func (c *ClickableList[V]) applyFilter(textFilter string) {
 	var currentData []V
 	for _, datum := range c.allData {

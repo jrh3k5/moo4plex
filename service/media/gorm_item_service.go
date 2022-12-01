@@ -12,12 +12,14 @@ import (
 )
 
 type GORMItemService struct {
-	db *gorm.DB
+	db             *gorm.DB
+	gormTagService *GORMTagService
 }
 
-func NewGORMItemService(db *gorm.DB) *GORMItemService {
+func NewGORMItemService(db *gorm.DB, gormTagService *GORMTagService) *GORMItemService {
 	return &GORMItemService{
-		db: db,
+		db:             db,
+		gormTagService: gormTagService,
 	}
 }
 
@@ -44,6 +46,18 @@ func (g *GORMItemService) GetItems(ctx context.Context, mediaLibraryID int64, me
 		return items[i].Name < items[j].Name
 	})
 	return items, nil
+}
+
+func (g *GORMItemService) GetItemsByAttributeSubstring(ctx context.Context, mediaLibraryID int64, textSubstring string) ([]*model.MediaItem, error) {
+	metadataItems, err := g.gormTagService.GetMetadataItemsForTagSubstring(ctx, mediaLibraryID, []gormmodel.TagType{gormmodel.Actor, gormmodel.Genre}, textSubstring)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get items in media library ID %d with text substring '%s': %w", mediaLibraryID, textSubstring, err)
+	}
+	mediaItems := make([]*model.MediaItem, len(metadataItems))
+	for metadataItemIndex, metadataItem := range metadataItems {
+		mediaItems[metadataItemIndex] = model.NewMediaItem(metadataItem.ID, metadataItem.Title, mediaLibraryID)
+	}
+	return mediaItems, nil
 }
 
 func (g *GORMItemService) toMetadataType(mediaType model.MediaType) (gormmodel.MetadataType, error) {

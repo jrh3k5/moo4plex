@@ -29,6 +29,27 @@ func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceCont
 		serviceContainer: serviceContainer,
 	}
 
+	filterItems := func(filterText string) {
+		mediaItems, err := serviceContainer.GetItemService().GetItemsByAttributeSubstring(ctx, itemSelector.currentMediaLibraryID, filterText)
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("failed to filter media items: %w", err), *parentWindow)
+			return
+		}
+		sort.Slice(mediaItems, func(i, j int) bool {
+			return mediaItems[i].Name < mediaItems[j].Name
+		})
+		itemSelector.mediaItemList.SetData(mediaItems)
+	}
+
+	filterEntry := widget.NewEntry()
+	filterEntry.Disable()
+	filterEntry.OnSubmitted = filterItems
+	filterButton := widget.NewButton("Filter by genre or actor", func() {
+		filterItems(filterEntry.Text)
+	})
+	filterButton.Disable()
+	filterContainer := container.NewBorder(nil, nil, nil, filterButton, filterEntry)
+
 	mediaTypeSelector := widget.NewSelect([]string{}, func(mediaTypeName string) {
 		mediaType := model.MediaType(mediaTypeName)
 		mediaItems, err := serviceContainer.GetItemService().GetItems(ctx, itemSelector.currentMediaLibraryID, mediaType)
@@ -36,13 +57,16 @@ func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceCont
 			dialog.ShowError(fmt.Errorf("unable to load items for media type '%s': %w", mediaTypeName, err), *parentWindow)
 		}
 		itemSelector.mediaItemList.SetData(mediaItems)
+		filterButton.Enable()
+		filterEntry.Enable()
 	})
 
 	mediaItemList := component.NewClickableList(func(m *model.MediaItem) string {
 		return m.Name
 	}, onSelect)
+	mediaItemList.SetPlaceholder("Filter by title")
 
-	itemSelector.container = container.NewBorder(mediaTypeSelector, nil, nil, nil, mediaItemList.GetObject())
+	itemSelector.container = container.NewBorder(container.NewVBox(mediaTypeSelector, filterContainer), nil, nil, nil, mediaItemList.GetObject())
 	itemSelector.mediaTypeSelector = mediaTypeSelector
 	itemSelector.mediaItemList = mediaItemList
 

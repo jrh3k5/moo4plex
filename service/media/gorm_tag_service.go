@@ -50,7 +50,7 @@ func (g *GORMTagService) GetMetadataItemsForTags(ctx context.Context, tagIDs []i
 }
 
 // GetMetadataItemsForTagSubstring gets all metadata items that match the given substring in their tags of the given types.
-func (g *GORMTagService) GetMetadataItemsForTagSubstring(ctx context.Context, mediaLibraryID int64, tagTypes []gormmodel.TagType, tagTextSubstring string) ([]*gormmodel.MetadataItem, error) {
+func (g *GORMTagService) GetMetadataItemsForTagSubstring(ctx context.Context, librarySectionID int64, tagTypes []gormmodel.TagType, tagTextSubstring string) ([]*gormmodel.MetadataItem, error) {
 	tagTypeInts := make([]int64, len(tagTypes))
 	for tagTypeIndex, tagType := range tagTypes {
 		tagTypeInts[tagTypeIndex] = int64(tagType)
@@ -58,8 +58,9 @@ func (g *GORMTagService) GetMetadataItemsForTagSubstring(ctx context.Context, me
 
 	var metadataItems []*gormmodel.MetadataItem
 	if dbErr := g.db.WithContext(ctx).Select("metadata_items.id, metadata_items.title, metadata_items.library_section_id").
-		Joins("INNER JOIN taggings on taggings.metadata_item_id = metadata_items.id AND taggings.library_section_id = ?", mediaLibraryID).
-		Joins("INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type IN (?) and lower(tags.tag) LIKE '%?%'", tagTypeInts, strings.ToLower(tagTextSubstring)).
+		Joins("INNER JOIN taggings on taggings.metadata_item_id = metadata_items.id").
+		Joins("INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type IN (?) and lower(tags.tag) LIKE ?", tagTypeInts, "%"+strings.ToLower(tagTextSubstring)+"%").
+		Where("metadata_items.library_section_id = ?", librarySectionID).
 		Find(&metadataItems).Error; dbErr != nil {
 		return nil, fmt.Errorf("failed to look up metadata items for %d tag types with a substring of '%s': %w", len(tagTypes), tagTextSubstring, dbErr)
 	}

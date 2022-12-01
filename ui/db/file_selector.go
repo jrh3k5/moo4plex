@@ -44,7 +44,7 @@ func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceCont
 		gormTagService := media.NewGORMTagService(db)
 		serviceContainer.SetLibraryService(media.NewGORMLibraryService(db))
 		serviceContainer.SetGenreService(media.NewGORMGenreService(gormTagService))
-		serviceContainer.SetItemService(media.NewGORMItemService(db))
+		serviceContainer.SetItemService(media.NewGORMItemService(db, gormTagService))
 		serviceContainer.SetActorService(media.NewGORMActorService(gormTagService))
 
 		if err := librarySelector.SetLibraries(ctx); err != nil {
