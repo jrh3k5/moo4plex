@@ -22,3 +22,4 @@ com.plexapp.plugins.library.db*
 
 # Ignore release artifacts
 dist/
+moo4plex.app/Contents

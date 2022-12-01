@@ -1,6 +1,8 @@
 # moo4plex
 moo4plex is a Multimedia Organizer/Optimizer for Plex. It allows the modification of metadata that Plex either does not expose via its web UI or does not expose as well as one might like.
 
+Application icon has been sourced from [here](https://openclipart.org/detail/17676/cartoon-cow).
+
 **DISCLAIMER**: this tool operates by performing operations directly against the sqlite database that backs Plex. This is not a supported workflow by Plex. Treat this as a way for things to go very, very wrong - make backups of the database before doing anything, and test thoroughly after you have made the changes available to Plex. If this tool breaks something in your Plex database, feel free to submit a bug, but I will not fix your database. Plex will not fix your database, even if you did back it up. The workflows in this tool are provided completely without warranty or promise of support.
 
 ## Usage
