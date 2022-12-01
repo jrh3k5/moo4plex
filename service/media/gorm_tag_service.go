@@ -58,7 +58,7 @@ func (g *GORMTagService) GetMetadataItemsForTagSubstring(ctx context.Context, me
 
 	var metadataItems []*gormmodel.MetadataItem
 	if dbErr := g.db.WithContext(ctx).Select("metadata_items.id, metadata_items.title, metadata_items.library_section_id").
-		Joins("INNER JOIN taggings on taggings.metadata_item_id = metadata_items.id").
+		Joins("INNER JOIN taggings on taggings.metadata_item_id = metadata_items.id AND taggings.library_section_id = ?", mediaLibraryID).
 		Joins("INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type IN (?) and lower(tags.tag) LIKE '%?%'", tagTypeInts, strings.ToLower(tagTextSubstring)).
 		Find(&metadataItems).Error; dbErr != nil {
 		return nil, fmt.Errorf("failed to look up metadata items for %d tag types with a substring of '%s': %w", len(tagTypes), tagTextSubstring, dbErr)
