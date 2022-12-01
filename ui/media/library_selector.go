@@ -63,6 +63,9 @@ func (l *LibrarySelector) SetLibraries(ctx context.Context) error {
 	l.selector.Options = libraryNames
 	l.mediaLibraries = libraries
 	l.selector.Enable()
+	if len(libraryNames) == 1 {
+		l.selector.SetSelected(libraryNames[0])
+	}
 	l.selector.Refresh()
 
 	return nil

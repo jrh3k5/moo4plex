@@ -12,5 +12,5 @@ type GenreService interface {
 	GetGenres(ctx context.Context, mediaLibraryID int64) ([]*model.Genre, error)
 
 	// MergeGenres merges the given genres into the target genre
-	MergeGenres(ctx context.Context, mergeTarget *model.Genre, toMerge []*model.Genre, totalCountCallback func(int), itemCompletionCallback func()) error
+	MergeGenres(ctx context.Context, mergeTarget *model.Genre, toMerge []*model.Genre) error
 }

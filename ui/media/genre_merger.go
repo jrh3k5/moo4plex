@@ -21,7 +21,7 @@ type GenreMerger struct {
 	toMerge          []*model.Genre
 }
 
-func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer, progressBar *widget.ProgressBar, onSaveCallback func()) *GenreMerger {
+func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceContainer *services.ServiceContainer, onSaveCallback func()) *GenreMerger {
 	merger := &GenreMerger{
 		serviceContainer: serviceContainer,
 	}
@@ -33,20 +33,7 @@ func NewGenreMerger(ctx context.Context, parentWindow *fyne.Window, serviceConta
 				mergeTarget := merger.mergeTarget
 				toMerge := merger.toMerge
 
-				numCompletions := 0
-				totalCallback := func(numItems int) {
-					progressBar.Max = float64(numItems)
-					progressBar.SetValue(0)
-					progressBar.Show()
-					defer progressBar.Hide()
-				}
-
-				itemCompletionCallback := func() {
-					numCompletions++
-					progressBar.SetValue(float64(numCompletions))
-				}
-
-				if mergeErr := serviceContainer.GetGenreService().MergeGenres(ctx, mergeTarget, toMerge, totalCallback, itemCompletionCallback); mergeErr != nil {
+				if mergeErr := serviceContainer.GetGenreService().MergeGenres(ctx, mergeTarget, toMerge); mergeErr != nil {
 					dialog.ShowError(fmt.Errorf("failed to merge genres: %w", mergeErr), *parentWindow)
 				} else {
 					onSaveCallback()
