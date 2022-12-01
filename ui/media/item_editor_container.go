@@ -23,7 +23,7 @@ type ItemEditActionContainer struct {
 }
 
 // NewItemEditActionContainer creates a new instance of ItemEditActionContainer
-func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditActionContainer {
+func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, onSave func()) *ItemEditActionContainer {
 	actionContainer := &ItemEditActionContainer{
 		serviceContainer: serviceContainer,
 	}
@@ -31,14 +31,16 @@ func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.
 	editorLabel := widget.NewLabel("Item:")
 	actionContainer.editorLabel = editorLabel
 
-	onSave := func() {
+	onControlSave := func() {
 		if refreshErr := actionContainer.refreshData(ctx); refreshErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to refresh data after removal: %w", refreshErr), *parentWindow)
+		} else {
+			onSave()
 		}
 	}
 
-	actorRemover := NewActorRemover(ctx, serviceContainer, parentWindow, onSave)
-	actorAdder := NewActorAdder(ctx, serviceContainer, parentWindow, onSave)
+	actorRemover := NewActorRemover(ctx, serviceContainer, parentWindow, onControlSave)
+	actorAdder := NewActorAdder(ctx, serviceContainer, parentWindow, onControlSave)
 	actorList := NewActorListMediaItem(ctx, serviceContainer, parentWindow)
 
 	editorAppTabs := container.NewAppTabs(

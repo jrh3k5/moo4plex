@@ -22,7 +22,11 @@ type ItemEditor struct {
 func NewItemEditor(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window) *ItemEditor {
 	itemEditor := &ItemEditor{}
 
-	itemEditActionContainer := NewItemEditActionContainer(ctx, serviceContainer, parentWindow)
+	itemEditActionContainer := NewItemEditActionContainer(ctx, serviceContainer, parentWindow, func() {
+		if refreshErr := itemEditor.itemSelector.RefreshMediaLibrary(ctx); refreshErr != nil {
+			dialog.ShowError(fmt.Errorf("failed to refresh media library in item selector: %w", refreshErr), *parentWindow)
+		}
+	})
 	itemSelector := NewItemSelector(ctx, serviceContainer, parentWindow, func(m *model.MediaItem) {
 		if setErr := itemEditActionContainer.SetItem(ctx, m); setErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to set action container to media item '%s': %w", m.Name, setErr), *parentWindow)

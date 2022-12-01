@@ -20,6 +20,7 @@ type ItemSelector struct {
 	container             *fyne.Container
 	mediaTypeSelector     *widget.Select
 	mediaItemList         *component.ClickableList[*model.MediaItem]
+	filterEntry           *widget.Entry
 	currentMediaLibraryID int64
 }
 
@@ -30,15 +31,10 @@ func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceCont
 	}
 
 	filterItems := func(filterText string) {
-		mediaItems, err := serviceContainer.GetItemService().GetItemsByAttributeSubstring(ctx, itemSelector.currentMediaLibraryID, filterText)
-		if err != nil {
-			dialog.ShowError(fmt.Errorf("failed to filter media items: %w", err), *parentWindow)
+		if filterErr := itemSelector.filterItems(ctx, filterText); filterErr != nil {
+			dialog.ShowError(fmt.Errorf("failed to filter media items: %w", filterErr), *parentWindow)
 			return
 		}
-		sort.Slice(mediaItems, func(i, j int) bool {
-			return mediaItems[i].Name < mediaItems[j].Name
-		})
-		itemSelector.mediaItemList.SetData(mediaItems)
 	}
 
 	filterEntry := widget.NewEntry()
@@ -69,12 +65,26 @@ func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceCont
 	itemSelector.container = container.NewBorder(container.NewVBox(mediaTypeSelector, filterContainer), nil, nil, nil, mediaItemList.GetObject())
 	itemSelector.mediaTypeSelector = mediaTypeSelector
 	itemSelector.mediaItemList = mediaItemList
+	itemSelector.filterEntry = filterEntry
 
 	return itemSelector
 }
 
 func (i *ItemSelector) GetObject() fyne.CanvasObject {
 	return i.container
+}
+
+// RefreshMediaLibrary
+func (i *ItemSelector) RefreshMediaLibrary(ctx context.Context) error {
+	if i.currentMediaLibraryID > 0 {
+		filterText := i.filterEntry.Text
+		if len(filterText) > 0 {
+			return i.filterItems(ctx, filterText)
+		} else {
+			return i.SetMediaLibrary(ctx, i.currentMediaLibraryID)
+		}
+	}
+	return nil
 }
 
 // SetMediaLibrary sets the context of the media library whose data is to be shown
@@ -97,5 +107,17 @@ func (i *ItemSelector) SetMediaLibrary(ctx context.Context, mediaLibraryID int64
 		i.mediaTypeSelector.SetSelected(mediaTypeNames[0])
 	}
 	i.mediaTypeSelector.Refresh()
+	return nil
+}
+
+func (i *ItemSelector) filterItems(ctx context.Context, filterText string) error {
+	mediaItems, err := i.serviceContainer.GetItemService().GetItemsByAttributeSubstring(ctx, i.currentMediaLibraryID, filterText)
+	if err != nil {
+		return fmt.Errorf("failed to filter media items with text '%s': %w", filterText, err)
+	}
+	sort.Slice(mediaItems, func(i, j int) bool {
+		return mediaItems[i].Name < mediaItems[j].Name
+	})
+	i.mediaItemList.SetData(mediaItems)
 	return nil
 }
