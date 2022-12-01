@@ -15,10 +15,11 @@ import (
 
 // ActorListMediaItem is a list of actors for a particular media item
 type ActorListMediaItem struct {
-	serviceContainer *services.ServiceContainer
-	container        fyne.CanvasObject
-	actorsList       *component.ClickableList[*model.Actor]
-	actorDetails     *ActorDetails
+	serviceContainer   *services.ServiceContainer
+	container          fyne.CanvasObject
+	actorsList         *component.ClickableList[*model.Actor]
+	actorDetails       *ActorDetails
+	currentMediaItemID int64
 }
 
 // NewActorListMediaItem creates a new instance of ActorListMediaItem
@@ -48,6 +49,14 @@ func (a *ActorListMediaItem) GetObject() fyne.CanvasObject {
 	return a.container
 }
 
+// RefreshMediaItem refreshes the media item data within this component
+func (a *ActorListMediaItem) RefreshMediaItem(ctx context.Context) error {
+	if a.currentMediaItemID > 0 {
+		return a.SetMediaItem(ctx, a.currentMediaItemID)
+	}
+	return nil
+}
+
 // SetMediaItem sets the media item to be in contxt for this list
 func (a *ActorListMediaItem) SetMediaItem(ctx context.Context, mediaItemID int64) error {
 	actors, err := a.serviceContainer.GetActorService().GetActorsForItem(ctx, mediaItemID)
@@ -59,5 +68,6 @@ func (a *ActorListMediaItem) SetMediaItem(ctx context.Context, mediaItemID int64
 	})
 	a.actorsList.SetData(actors)
 	a.actorDetails.ClearActor()
+	a.currentMediaItemID = mediaItemID
 	return nil
 }

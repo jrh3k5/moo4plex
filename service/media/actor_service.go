@@ -8,6 +8,9 @@ import (
 
 // ActorService defines a means of interacting with actor information
 type ActorService interface {
+	// AddActorToItem adds an actor to a media item
+	AddActorToItem(ctx context.Context, mediaItemID int64, actorID int64) error
+
 	// GetActorsForItem gets the actors for a given item
 	GetActorsForItem(ctx context.Context, mediaItemID int64) ([]*model.Actor, error)
 

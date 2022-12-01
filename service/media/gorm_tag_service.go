@@ -20,11 +20,25 @@ func NewGORMTagService(db *gorm.DB) *GORMTagService {
 	}
 }
 
+func (g *GORMTagService) AddTagToMetadataItem(ctx context.Context, metadataItemID int64, tagID int64, tagType gormmodel.TagType) error {
+	maxIndexSelectQuery := `SELECT IFNULL(MAX("index"), 0)
+						    FROM taggings
+						    INNER JOIN tags ON tags.id = taggings.tag_id AND tags.tag_type = ?
+						    WHERE taggings.metadata_item_id = ?`
+	var maxIndex int64
+	if getMaxIndexErr := g.db.WithContext(ctx).Raw(maxIndexSelectQuery, int(tagType), metadataItemID).Scan(&maxIndex).Error; getMaxIndexErr != nil {
+		return fmt.Errorf("failed to get max index for metadata item ID %d, tag type %v: %w", metadataItemID, tagType, getMaxIndexErr)
+	}
+
+	insertQuery := `INSERT INTO taggings(metadata_item_id, tag_id, "index", created_at) VALUES(?, ?, ?, ?)`
+	if insertErr := g.db.WithContext(ctx).Exec(insertQuery, metadataItemID, tagID, maxIndex+1, time.Now()).Error; insertErr != nil {
+		return fmt.Errorf("failed to insert tag association of tag ID %d to metadata item ID %d at index %d: %w", tagID, metadataItemID, maxIndex+1, insertErr)
+	}
+	return nil
+}
+
 // GetMetadataItemsForTags gets the metadata items associated to the given tags
 func (g *GORMTagService) GetMetadataItemsForTags(ctx context.Context, tagIDs []int64) ([]*gormmodel.MetadataItem, error) {
-	// getMediaItems := `SELECT mi.id, mi.title
-	// 				  FROM metadata_items mi
-	// 				  INNER JOIN taggings ON taggings.metadata_item_id = mi.id AND taggings.tag_id IN (?)`
 	var metadataItems []*gormmodel.MetadataItem
 	if dbErr := g.db.WithContext(ctx).Select("metadata_items.id, metadata_items.title, metadata_items.library_section_id").
 		Joins("INNER JOIN taggings on taggings.metadata_item_id = metadata_items.id AND taggings.tag_id IN (?)", tagIDs).

@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/model"
 	"github.com/jrh3k5/moo4plex/ui/component"
@@ -15,22 +16,35 @@ import (
 
 // ActorAdder is a component to be used to add an actor to a media item
 type ActorAdder struct {
-	serviceContainer *services.ServiceContainer
-	container        fyne.CanvasObject
-	actorList        *component.ClickableList[*model.Actor]
-	actorDetails     *ActorDetails
-	mediaItemActors  []*model.Actor
-	currentActor     *model.Actor
+	serviceContainer   *services.ServiceContainer
+	container          fyne.CanvasObject
+	addActorButton     *widget.Button
+	actorList          *component.ClickableList[*model.Actor]
+	actorDetails       *ActorDetails
+	currentMediaItemID int64
+	mediaItemActors    []*model.Actor
+	currentActor       *model.Actor
 }
 
 // NewActorAdder creates a new instance of ActorAdder
-func NewActorAdder(ctx context.Context, serviceContainer *services.ServiceContainer) *ActorAdder {
+func NewActorAdder(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, onSave func()) *ActorAdder {
 	actorAdder := &ActorAdder{
 		serviceContainer: serviceContainer,
 	}
 
 	addActorButton := widget.NewButton("Add Actor", func() {
-		fmt.Printf("adding actor '%s'\n", actorAdder.currentActor.Name)
+		dialog.ShowConfirm("Confirm Actor Addition", fmt.Sprintf("You are about to add the actor '%s' to this media item. Do you wish to continue?", actorAdder.currentActor.Name), func(confirmed bool) {
+			if !confirmed {
+				return
+			}
+
+			if addErr := serviceContainer.GetActorService().AddActorToItem(ctx, actorAdder.currentMediaItemID, actorAdder.currentActor.ID); addErr != nil {
+				dialog.ShowError(fmt.Errorf("failed to add actor to media item: %w", addErr), *parentWindow)
+				return
+			}
+
+			onSave()
+		}, *parentWindow)
 	})
 	addActorButton.Disable()
 
@@ -54,6 +68,7 @@ func NewActorAdder(ctx context.Context, serviceContainer *services.ServiceContai
 	actionContainer := container.NewBorder(nil, addActorButton, nil, nil, actorDetails.GetObject())
 
 	actorAdder.container = container.NewGridWithColumns(2, actorList.GetObject(), actionContainer)
+	actorAdder.addActorButton = addActorButton
 	actorAdder.actorList = actorList
 	actorAdder.actorDetails = actorDetails
 
@@ -62,6 +77,19 @@ func NewActorAdder(ctx context.Context, serviceContainer *services.ServiceContai
 
 func (a *ActorAdder) GetObject() fyne.CanvasObject {
 	return a.container
+}
+
+// RefreshMediaItem refreshes the media item data in this control
+func (a *ActorAdder) RefreshMediaItem(ctx context.Context) error {
+	if a.currentMediaItemID > 0 {
+		if setErr := a.SetMediaItem(ctx, a.currentMediaItemID); setErr != nil {
+			return fmt.Errorf("failed to set the media to item ID %d: %w", a.currentMediaItemID, setErr)
+		}
+	}
+	a.currentActor = nil
+	a.actorDetails.ClearActor()
+	a.addActorButton.Disable()
+	return nil
 }
 
 // SetMediaLibrary sets the media library in context for this component
@@ -83,6 +111,7 @@ func (a *ActorAdder) SetMediaItem(ctx context.Context, mediaItemID int64) error 
 	if err != nil {
 		return fmt.Errorf("failed to load actors for media item ID %d: %w", mediaItemID, err)
 	}
+	a.currentMediaItemID = mediaItemID
 	a.mediaItemActors = mediaItemActors
 	return nil
 }

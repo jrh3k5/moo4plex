@@ -18,6 +18,10 @@ func NewGORMActorService(gormTagService *GORMTagService) *GORMActorService {
 	}
 }
 
+func (g *GORMActorService) AddActorToItem(ctx context.Context, mediaItemID int64, actorID int64) error {
+	return g.gormTagService.AddTagToMetadataItem(ctx, mediaItemID, actorID, gormmodel.Actor)
+}
+
 func (g *GORMActorService) GetActorsForItem(ctx context.Context, mediaItemID int64) ([]*model.Actor, error) {
 	tags, err := g.gormTagService.GetTagsForMetadataItem(ctx, gormmodel.Actor, mediaItemID)
 	if err != nil {

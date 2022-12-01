@@ -31,12 +31,14 @@ func NewItemEditActionContainer(ctx context.Context, serviceContainer *services.
 	editorLabel := widget.NewLabel("Item:")
 	actionContainer.editorLabel = editorLabel
 
-	actorRemover := NewActorRemover(ctx, serviceContainer, parentWindow, func() {
+	onSave := func() {
 		if refreshErr := actionContainer.refreshData(ctx); refreshErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to refresh data after removal: %w", refreshErr), *parentWindow)
 		}
-	})
-	actorAdder := NewActorAdder(ctx, serviceContainer)
+	}
+
+	actorRemover := NewActorRemover(ctx, serviceContainer, parentWindow, onSave)
+	actorAdder := NewActorAdder(ctx, serviceContainer, parentWindow, onSave)
 	actorList := NewActorListMediaItem(ctx, serviceContainer, parentWindow)
 
 	editorAppTabs := container.NewAppTabs(
@@ -58,13 +60,6 @@ func (i *ItemEditActionContainer) GetObject() fyne.CanvasObject {
 	return i.editorContainer
 }
 
-func (i *ItemEditActionContainer) refreshData(ctx context.Context) error {
-	if removeRefreshErr := i.actorRemover.RefreshMediaItem(ctx); removeRefreshErr != nil {
-		return fmt.Errorf("failed to refresh data within actor remover: %w", removeRefreshErr)
-	}
-	return nil
-}
-
 // SetMediaLibrary sets the media library in context of this component
 func (i *ItemEditActionContainer) SetMediaLibrary(ctx context.Context, mediaLibraryID int64) error {
 	return i.actorAdder.SetMediaLibrary(ctx, mediaLibraryID)
@@ -81,6 +76,19 @@ func (i *ItemEditActionContainer) SetItem(ctx context.Context, mediaItem *model.
 	}
 	if setErr := i.actorList.SetMediaItem(ctx, mediaItem.ID); setErr != nil {
 		return fmt.Errorf("failed to set media item on actor list: %w", setErr)
+	}
+	return nil
+}
+
+func (i *ItemEditActionContainer) refreshData(ctx context.Context) error {
+	if removeRefreshErr := i.actorRemover.RefreshMediaItem(ctx); removeRefreshErr != nil {
+		return fmt.Errorf("failed to refresh data within actor remover: %w", removeRefreshErr)
+	}
+	if addRefreshErr := i.actorAdder.RefreshMediaItem(ctx); addRefreshErr != nil {
+		return fmt.Errorf("failed to refresh data within actor adder: %w", addRefreshErr)
+	}
+	if listRefreshErr := i.actorList.RefreshMediaItem(ctx); listRefreshErr != nil {
+		return fmt.Errorf("failed to refresh data within actor list: %w", listRefreshErr)
 	}
 	return nil
 }
