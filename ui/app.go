@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/jrh3k5/moo4plex/model"
+	"github.com/jrh3k5/moo4plex/shutdown"
 	"github.com/jrh3k5/moo4plex/ui/db"
 	mediaui "github.com/jrh3k5/moo4plex/ui/media"
 	"github.com/jrh3k5/moo4plex/ui/services"
@@ -22,6 +23,9 @@ func NewApp() *App {
 }
 
 func (a *App) Run(ctx context.Context) error {
+	shutdownHookRegistrar := shutdown.NewSliceHookRegistrar()
+	defer shutdownHookRegistrar.ExecuteHooks(ctx)
+
 	height := 800
 	width := 700
 
@@ -60,7 +64,7 @@ func (a *App) Run(ctx context.Context) error {
 		}
 	})
 
-	dbFileSelector := db.NewFileSelector(ctx, serviceContainer, &window, librarySelector)
+	dbFileSelector := db.NewFileSelector(ctx, serviceContainer, &window, librarySelector, shutdownHookRegistrar)
 
 	dbMediaContainer := container.NewVBox(dbFileSelector.GetObject(), librarySelector.GetObject())
 	genreDataContainer := container.NewGridWithRows(2,

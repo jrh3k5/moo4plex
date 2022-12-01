@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jrh3k5/moo4plex/service/media"
+	"github.com/jrh3k5/moo4plex/shutdown"
 	mediaui "github.com/jrh3k5/moo4plex/ui/media"
 	"github.com/jrh3k5/moo4plex/ui/services"
 	"gorm.io/driver/sqlite"
@@ -22,7 +23,7 @@ type FileSelector struct {
 }
 
 // NewFileSelector creates a new instance of FileSelector
-func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, librarySelector *mediaui.LibrarySelector) *FileSelector {
+func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceContainer, parentWindow *fyne.Window, librarySelector *mediaui.LibrarySelector, hookRegistrar shutdown.HookRegistrar) *FileSelector {
 	filePathTextbox := widget.NewEntry()
 	filePathTextbox.Disable()
 
@@ -40,6 +41,14 @@ func NewFileSelector(ctx context.Context, serviceContainer *services.ServiceCont
 			dialog.ShowError(fmt.Errorf("failed to open database at '%s': %w", uriString, err), *parentWindow)
 			return
 		}
+		hookRegistrar.AddHook(func(_ context.Context) error {
+			if closableDB, dbErr := db.DB(); dbErr != nil {
+				return fmt.Errorf("failed to get closable database reference during closure: %w", dbErr)
+			} else if closeErr := closableDB.Close(); closeErr != nil {
+				return fmt.Errorf("failed to close database on shutdown: %w", closeErr)
+			}
+			return nil
+		})
 
 		gormTagService := media.NewGORMTagService(db)
 		serviceContainer.SetLibraryService(media.NewGORMLibraryService(db))
