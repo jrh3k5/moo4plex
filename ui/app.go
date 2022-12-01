@@ -37,7 +37,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	var genreSelector *mediaui.GenreSelector
 
-	genreMerger := mediaui.NewGenreMergeEditor(ctx, &window, serviceContainer, func() {
+	genreMerger := mediaui.NewGenreEditor(ctx, &window, serviceContainer, func() {
 		if refreshErr := genreSelector.RefreshGenres(ctx); refreshErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to refresh genre selector after save: %w", refreshErr), window)
 		}
