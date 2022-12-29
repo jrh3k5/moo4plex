@@ -38,6 +38,22 @@ func (g *GORMTagService) AddTagToMetadataItem(ctx context.Context, metadataItemI
 	return nil
 }
 
+// DeleteTagAssociations deletes all tag associations for the given tag
+func (g *GORMTagService) DeleteTagAssociations(ctx context.Context, tagID int64, tagType gormmodel.TagType) error {
+	return g.db.Transaction(func(tx *gorm.DB) error {
+		metadataIDs, metadataSelectErr := getTagMetadataIDs(ctx, tx, []int64{tagID}, tagType)
+		if metadataSelectErr != nil {
+			return fmt.Errorf("failed to select metadata IDs for tag ID %d, type %d: %w", tagID, int(tagType), metadataSelectErr)
+		}
+
+		if deleteErr := deleteTagAssociations(ctx, tx, metadataIDs, []int64{tagID}); deleteErr != nil {
+			return fmt.Errorf("failed to delete association of tag ID %d to %d metadata items: %w", tagID, len(metadataIDs), deleteErr)
+		}
+
+		return nil
+	})
+}
+
 // GetMetadataItemsForTags gets the metadata items associated to the given tags
 func (g *GORMTagService) GetMetadataItemsForTags(ctx context.Context, tagIDs []int64) ([]*gormmodel.MetadataItem, error) {
 	var metadataItems []*gormmodel.MetadataItem
@@ -108,20 +124,14 @@ func (g *GORMTagService) RemoveTagsFromItem(ctx context.Context, metadataID int6
 // ReplaceTags replaces all associations of the given toReplaceTagIDs in the given media library section with the given replacementTagID
 func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64, tagType gormmodel.TagType, toReplaceTagIDs []int64, replacementTagIDs []int64) error {
 	return g.db.Transaction(func(tx *gorm.DB) error {
-		metadataIDSelectQuery := `SELECT DISTINCT t1.metadata_item_id
-								  FROM taggings t1
-								  INNER JOIN tags t2 ON t2.id = t1.tag_id AND t2.tag_type = ?
-								  WHERE t1.tag_id IN (?)`
-
-		var metadataIDs []int64
-		if metadataSelectErr := tx.Raw(metadataIDSelectQuery, int(tagType), toReplaceTagIDs).Find(&metadataIDs).Error; metadataSelectErr != nil {
+		metadataIDs, metadataSelectErr := getTagMetadataIDs(ctx, tx, toReplaceTagIDs, tagType)
+		if metadataSelectErr != nil {
 			return fmt.Errorf("failed to select metadata IDs for %d replacement tags of type %d: %w", len(toReplaceTagIDs), int(tagType), metadataSelectErr)
 		}
 
-		deleteTaggingsQuery := `DELETE FROM taggings WHERE metadata_item_id = ? AND tag_id IN (?)`
 		for _, metadataID := range metadataIDs {
 			// Delete the association to the tags to be merged
-			if deleteErr := tx.Exec(deleteTaggingsQuery, metadataID, toReplaceTagIDs).Error; deleteErr != nil {
+			if deleteErr := deleteTagAssociations(ctx, tx, []int64{metadataID}, toReplaceTagIDs); deleteErr != nil {
 				return fmt.Errorf("failed to delete %d tag associations of type %d for metadata ID %d: %w", len(toReplaceTagIDs), int(tagType), metadataID, deleteErr)
 			}
 
@@ -163,6 +173,28 @@ func (g *GORMTagService) ReplaceTags(ctx context.Context, librarySectionID int64
 
 		return nil
 	})
+}
+
+// deleteTagAssociation deletes the associations between the given metadata item and tags
+func deleteTagAssociations(ctx context.Context, db *gorm.DB, metadataItemIDs []int64, tagIDs []int64) error {
+	deleteTaggingsQuery := `DELETE FROM taggings WHERE metadata_item_id IN (?) AND tag_id IN (?)`
+	if deleteErr := db.Exec(deleteTaggingsQuery, metadataItemIDs, tagIDs).Error; deleteErr != nil {
+		return fmt.Errorf("failed to delete %d tag associations for %d metadata items: %w", len(tagIDs), len(metadataItemIDs), deleteErr)
+	}
+	return nil
+}
+
+// getTagMetadataIDs gets the metadata item IDs that are associated to the given tag IDs
+func getTagMetadataIDs(ctx context.Context, db *gorm.DB, tagIDs []int64, tagType gormmodel.TagType) ([]int64, error) {
+	metadataIDSelectQuery := `SELECT DISTINCT t1.metadata_item_id
+							  FROM taggings t1
+							  INNER JOIN tags t2 ON t2.id = t1.tag_id AND t2.tag_type = ?
+							  WHERE t1.tag_id IN (?)`
+	var metadataIDs []int64
+	if metadataSelectErr := db.Raw(metadataIDSelectQuery, int(tagType), tagIDs).Find(&metadataIDs).Error; metadataSelectErr != nil {
+		return nil, fmt.Errorf("failed to select metadata IDs for %d replacement tags of type %d: %w", len(tagIDs), int(tagType), metadataSelectErr)
+	}
+	return metadataIDs, nil
 }
 
 // reorderTags pulls the tags of the given type for the given media item ID and rebuilds their indices

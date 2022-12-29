@@ -18,6 +18,10 @@ func NewGORMGenreService(gormTagService *GORMTagService) *GORMGenreService {
 	}
 }
 
+func (g *GORMGenreService) DeleteGenre(ctx context.Context, toDelete *model.Genre) error {
+	return g.gormTagService.DeleteTagAssociations(ctx, toDelete.ID, gormmodel.Genre)
+}
+
 func (g *GORMGenreService) GetGenres(ctx context.Context, mediaLibraryID int64) ([]*model.Genre, error) {
 	tags, err := g.gormTagService.GetTagsForLibrarySection(ctx, gormmodel.Genre, mediaLibraryID)
 	if err != nil {

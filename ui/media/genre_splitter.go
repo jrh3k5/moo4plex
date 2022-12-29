@@ -40,6 +40,7 @@ func NewGenreSplitter(ctx context.Context, serviceContainer *services.ServiceCon
 
 			if splitErr := serviceContainer.GetGenreService().SplitGenres(ctx, splitter.splitSource, splitter.selectedSplitTargets); splitErr != nil {
 				dialog.ShowError(fmt.Errorf("failed to split genres: %w", splitErr), *parentWindow)
+				return
 			}
 			onSaveCallback()
 		}, *parentWindow)

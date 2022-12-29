@@ -8,6 +8,9 @@ import (
 
 // GenreService defines means of interacting with genres
 type GenreService interface {
+	// DeleteGenre deletes the given genre
+	DeleteGenre(ctx context.Context, toDelete *model.Genre) error
+
 	// GetGenres gets genres listed within the given media library
 	GetGenres(ctx context.Context, mediaLibraryID int64) ([]*model.Genre, error)
 

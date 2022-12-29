@@ -19,6 +19,7 @@ type GenreEditor struct {
 	genreMergerList  *GenreList
 	genreMerger      *GenreMerger
 	genreSplitter    *GenreSplitter
+	genreDeleter     *GenreDeleter
 }
 
 // NewGenreEditor creates a new instance of GenreMergeEditor
@@ -48,9 +49,14 @@ func NewGenreEditor(ctx context.Context, parentWindow *fyne.Window, serviceConta
 	genreEditor.genreSplitter = genreSplitter
 	genreSplitContainer := genreSplitter.GetObject()
 
+	genreDeleter := NewGenreDeleter(ctx, serviceContainer, parentWindow, onSave)
+	genreEditor.genreDeleter = genreDeleter
+	genreDeleteContainer := genreDeleter.GetObject()
+
 	genreEditorTabs := container.NewAppTabs(
 		container.NewTabItem("Merge Genres", genreMergeContainer),
 		container.NewTabItem("Split Genres", genreSplitContainer),
+		container.NewTabItem("Delete Genre", genreDeleteContainer),
 	)
 	genreEditorTabs.SetTabLocation(container.TabLocationBottom)
 
@@ -68,6 +74,9 @@ func (g *GenreEditor) ClearGenre() {
 
 	// clear genre splitter
 	g.genreSplitter.ClearSplits()
+
+	// clear genre deleter
+	g.genreDeleter.ClearGenre()
 
 	// reset the name to indicate that there's nothing currently selected
 	g.containerLabel.SetText("Genre:")
@@ -91,6 +100,9 @@ func (g *GenreEditor) SetGenre(ctx context.Context, genre *model.Genre) error {
 		return fmt.Errorf("failed to set targettable genres in genre splitter: %w", splitGenresSetErr)
 	}
 	g.genreSplitter.SetSplitSource(genre)
+
+	// set the genre deleter
+	g.genreDeleter.SetGenre(genre)
 
 	// indicate the current, in-context genre
 	g.containerLabel.SetText(fmt.Sprintf("Genre: %s", genre.Name))
