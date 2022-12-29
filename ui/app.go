@@ -37,14 +37,16 @@ func (a *App) Run(ctx context.Context) error {
 
 	var genreSelector *mediaui.GenreSelector
 
-	genreMerger := mediaui.NewGenreEditor(ctx, &window, serviceContainer, func() {
+	genreEditor := mediaui.NewGenreEditor(ctx, &window, serviceContainer, func() {
 		if refreshErr := genreSelector.RefreshGenres(ctx); refreshErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to refresh genre selector after save: %w", refreshErr), window)
 		}
 	})
 
 	genreSelector = mediaui.NewGenreSelector(serviceContainer, func(genre *model.Genre) {
-		genreMerger.SetGenre(ctx, genre)
+		if setGenreErr := genreEditor.SetGenre(ctx, genre); setGenreErr != nil {
+			dialog.ShowError(fmt.Errorf("failed to set the genre for the genre editor: %v", setGenreErr), window)
+		}
 	})
 
 	itemEditor := mediaui.NewItemEditor(ctx, serviceContainer, &window)
@@ -69,7 +71,7 @@ func (a *App) Run(ctx context.Context) error {
 	dbMediaContainer := container.NewVBox(dbFileSelector.GetObject(), librarySelector.GetObject())
 	genreDataContainer := container.NewGridWithRows(2,
 		genreSelector.GetObject(),
-		genreMerger.GetObject(),
+		genreEditor.GetObject(),
 	)
 
 	tabbedContainer := container.NewAppTabs(

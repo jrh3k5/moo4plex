@@ -59,7 +59,7 @@ func NewItemSelector(ctx context.Context, serviceContainer *services.ServiceCont
 
 	mediaItemList := component.NewClickableList(func(m *model.MediaItem) string {
 		return m.Name
-	}, onSelect)
+	}, onSelect, true)
 	mediaItemList.SetPlaceholder("Filter by title")
 
 	itemSelector.container = container.NewBorder(container.NewVBox(mediaTypeSelector, filterContainer), nil, nil, nil, mediaItemList.GetObject())

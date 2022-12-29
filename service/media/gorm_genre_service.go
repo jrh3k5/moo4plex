@@ -37,5 +37,14 @@ func (g *GORMGenreService) MergeGenres(ctx context.Context, mergeTarget *model.G
 		toMergeIDs[mergeIndex] = mergeable.ID
 	}
 
-	return g.gormTagService.ReplaceTags(ctx, mergeTarget.MediaLibraryID, gormmodel.Genre, toMergeIDs, mergeTarget.ID)
+	return g.gormTagService.ReplaceTags(ctx, mergeTarget.MediaLibraryID, gormmodel.Genre, toMergeIDs, []int64{mergeTarget.ID})
+}
+
+func (g *GORMGenreService) SplitGenres(ctx context.Context, splitSource *model.Genre, splitTargets []*model.Genre) error {
+	splitTargetIDs := make([]int64, len(splitTargets))
+	for splitTargetIndex, splitTarget := range splitTargets {
+		splitTargetIDs[splitTargetIndex] = splitTarget.ID
+	}
+
+	return g.gormTagService.ReplaceTags(ctx, splitSource.MediaLibraryID, gormmodel.Genre, []int64{splitSource.ID}, splitTargetIDs)
 }

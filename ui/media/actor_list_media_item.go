@@ -36,7 +36,7 @@ func NewActorListMediaItem(ctx context.Context, serviceContainer *services.Servi
 		if setErr := actorDetails.SetActor(ctx, a); setErr != nil {
 			dialog.ShowError(fmt.Errorf("failed to set details for actor '%s': %w", a.Name, setErr), *parentWindow)
 		}
-	})
+	}, true)
 
 	item.container = container.NewGridWithColumns(2, actorList.GetObject(), actorDetails.GetObject())
 	item.actorsList = actorList
