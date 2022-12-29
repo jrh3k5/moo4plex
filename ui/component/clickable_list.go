@@ -19,7 +19,7 @@ type ClickableList[V any] struct {
 }
 
 // NewClickableList creates a new instance of ClickableList
-func NewClickableList[V any](nameGetter func(V) string, clickHandler func(V)) *ClickableList[V] {
+func NewClickableList[V any](nameGetter func(V) string, clickHandler func(V), withFilter bool) *ClickableList[V] {
 	clickableList := &ClickableList[V]{
 		nameGetter: nameGetter,
 	}
@@ -51,17 +51,23 @@ func NewClickableList[V any](nameGetter func(V) string, clickHandler func(V)) *C
 		button.Enable()
 	})
 
-	listFilter := widget.NewEntry()
-	listFilter.Disable()
-	listFilter.SetPlaceHolder("Filter")
-	listFilter.OnChanged = func(v string) {
-		clickableList.applyFilter(v)
-		clickableList.listFilter.Refresh()
+	if withFilter {
+		listFilter := widget.NewEntry()
+		listFilter.Disable()
+		listFilter.SetPlaceHolder("Filter")
+		listFilter.OnChanged = func(v string) {
+			clickableList.applyFilter(v)
+			if clickableList.listFilter != nil {
+				clickableList.listFilter.Refresh()
+			}
+		}
+		clickableList.listContainer = container.NewBorder(listFilter, nil, nil, nil, container.NewMax(dataList))
+		clickableList.listFilter = listFilter
+	} else {
+		clickableList.listContainer = container.NewMax(dataList)
 	}
 
-	clickableList.listContainer = container.NewBorder(listFilter, nil, nil, nil, container.NewMax(dataList))
 	clickableList.dataList = dataList
-	clickableList.listFilter = listFilter
 
 	return clickableList
 }
@@ -80,15 +86,21 @@ func (c *ClickableList[V]) GetObject() fyne.CanvasObject {
 // SetData sets the data to be displayed within the list
 func (c *ClickableList[V]) SetData(data []V) {
 	c.allData = data
-	c.applyFilter(c.listFilter.Text)
 	c.dataList.Refresh()
 
-	c.listFilter.Enable()
+	if c.listFilter != nil {
+		c.applyFilter(c.listFilter.Text)
+		c.listFilter.Enable()
+	} else {
+		c.applyFilter("")
+	}
 }
 
 // SetPlaceholder sets the placeholder text to be shown
 func (c *ClickableList[V]) SetPlaceholder(placeholderText string) {
-	c.listFilter.SetPlaceHolder(placeholderText)
+	if c.listFilter != nil {
+		c.listFilter.SetPlaceHolder(placeholderText)
+	}
 }
 
 func (c *ClickableList[V]) applyFilter(textFilter string) {

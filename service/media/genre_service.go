@@ -13,4 +13,7 @@ type GenreService interface {
 
 	// MergeGenres merges the given genres into the target genre
 	MergeGenres(ctx context.Context, mergeTarget *model.Genre, toMerge []*model.Genre) error
+
+	// SplitGenres splits the given genre into the given target genres
+	SplitGenres(ctx context.Context, splitSource *model.Genre, splitTargets []*model.Genre) error
 }

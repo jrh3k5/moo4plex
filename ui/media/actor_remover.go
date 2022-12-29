@@ -38,7 +38,7 @@ func NewActorRemover(ctx context.Context, serviceContainer *services.ServiceCont
 		}
 		actorRemover.removeActorButton.Enable()
 		actorRemover.currentActor = a
-	})
+	}, true)
 	removeActorButton := widget.NewButton("Remove Actor", func() {
 		dialog.ShowConfirm("Confirm Actor Removal", fmt.Sprintf("You are about to remove the actor '%s'. Do you wish to continue?", actorRemover.currentActor.Name), func(confirmed bool) {
 			if !confirmed {

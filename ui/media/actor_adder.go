@@ -62,7 +62,7 @@ func NewActorAdder(ctx context.Context, serviceContainer *services.ServiceContai
 		}
 
 		addActorButton.Enable()
-	})
+	}, true)
 	actorDetails := NewActorDetails(serviceContainer)
 
 	actionContainer := container.NewBorder(nil, addActorButton, nil, nil, actorDetails.GetObject())
