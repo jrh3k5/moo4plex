@@ -13,7 +13,7 @@ This tool operates against the sqlite database that Plex uses to store its metad
 
 ## Genres
 
-You can use this tool to merge genres (replacing multiple genres with a single genre) and to split genres (replacing a single genre with multiple genres). This can only work with existing genres; this tool cannot add new genres. If you need a new genre, add it through Plex's UI and then load the database with this tool.
+You can use this tool to merge genres (replacing multiple genres with a single genre), split genres (replacing a single genre with multiple genres), and delete genres. This can only work with existing genres; this tool cannot add new genres. If you need a new genre, add it through Plex's UI and then load the database with this tool.
 
 ### Merging
 
@@ -28,6 +28,16 @@ This will _not_ delete the actual genres, as special field metadata in the Plex 
 There are situations where you may end up with duplicate genres, where a single genre can be better-represented as two or more distinct genres. You can use MOO to replace the instances of that single genre tag with two or more other genres:
 
 <img src="docs/images/genres/split_example.png" />
+
+This will _not_ delete the actual genre being 'split', as special field metadata in the Plex database prevent this, but it will disassociate media items from the selected genre and associate them to the given split genres, leaving it up to Plex to garbage collect the unused genre.
+
+### Deleting
+
+Sometimes, a metadata agent will add genres that you don't find a use for. While you can go through each item and delete the genre manually, that's very slow and tedious. MOO will let you delete a single genre by clicking a very large button:
+
+<img src="docs/images/genres/delete_example.png" />
+
+This will _not_ delete the actual genre, as special field metadata in the Plex database prevent this, but it will disassociate media items from the selected genre, leaving it up to Plex to garbage collect the now-unused genre.
 
 ## Items
 
