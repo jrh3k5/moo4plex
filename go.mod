@@ -3,7 +3,7 @@ module github.com/jrh3k5/moo4plex
 go 1.18
 
 require (
-	fyne.io/fyne/v2 v2.5.4
+	fyne.io/fyne/v2 v2.5.5
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )
