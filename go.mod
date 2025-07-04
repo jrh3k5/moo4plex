@@ -1,6 +1,6 @@
 module github.com/jrh3k5/moo4plex
 
-go 1.18
+go 1.24
 
 require (
 	fyne.io/fyne/v2 v2.6.0
