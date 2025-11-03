@@ -5,7 +5,7 @@ go 1.24
 require (
 	fyne.io/fyne/v2 v2.7.0
 	gorm.io/driver/sqlite v1.6.0
-	gorm.io/gorm v1.31.0
+	gorm.io/gorm v1.31.1
 )
 
 require (
