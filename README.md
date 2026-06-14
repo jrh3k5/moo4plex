@@ -1,3 +1,5 @@
+This project has been [migrated to Codeberg](https://codeberg.org/jrh3k5/moo).
+
 # moo4plex
 moo4plex is a Multimedia Organizer/Optimizer for Plex. It allows the modification of metadata that Plex either does not expose via its web UI or does not expose as well as one might like.
 
